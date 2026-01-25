@@ -1,9 +1,9 @@
 // -----------------------------------------------------------------------------
-// MintCrate - Math
-// A utility library for assorted mathematical functions.
+// MintCrate - MintMath
+// A utility library for assorted mathematical functions
 // -----------------------------------------------------------------------------
 
-export class MathX {
+export class MintMath {
   constructor() {
     
   }

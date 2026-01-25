@@ -5,7 +5,8 @@
 
 'use strict';
 
-import { Room } from "./room.js";
+import { Room }    from "./room.js";
+import { MintUtil } from "./mintutil.js";
 
 import { SYSTEM_MEDIA_B64 } from "./img/b64.js";
 
@@ -51,6 +52,11 @@ export class MintCrate {
   #tilemapFullName;
   #tilemapName;
   #layoutName;
+  
+  #fadeLevel;
+  #fadeValue;
+  #fadeColor;
+  #fadeFunc;
   
   #quickBoot;
   #showFps;
@@ -173,6 +179,11 @@ export class MintCrate {
     this.#tilemapFullName = "";
     this.#tilemapName     = "";
     this.#layoutName      = "";
+    
+    // Visual fades
+    this.#fadeLevel = 0;
+    this.#fadeValue = 1;
+    this.#fadeColor = {r: 0, g: 0, b: 0};
     
     // Debug functionality
     this.#quickBoot                = false;
@@ -490,7 +501,7 @@ export class MintCrate {
       console.log('b', this.#isChangingRooms);
       
       // Handle fade-out before changing room (if configured).
-      if (this.#currentRoom && this.#currentRoom.getRoomFadeInfo().fadeOutConfig.enabled) {
+      if (this.#currentRoom && this.#currentRoom.getRoomfadeConfig().fadeOut.enabled) {
         // Trigger the fade-out effect, then change room when it's done.
         this.#triggerRoomFade('fadeOut', () => {
             this.#performRoomChange(room, options.persistAudio)
@@ -551,88 +562,100 @@ export class MintCrate {
       this.#roomHasChanged = true;
       
       // Trigger fade in for fresh room (if configured)
-      if (this.#currentRoom.getRoomFadeInfo().fadeInConfig.enabled) {
+      if (this.#currentRoom.getRoomFadeConfig().fadeIn.enabled) {
         this.#triggerRoomFade('fadeIn');
       }
     }
   }
   
   #triggerRoomFade(fadeType, finishedCallback, fadeMusic) {
-    return;
-    // TODO: All this
-    /*
-    let fade = this.#currentRoom.getRoomFadeInfo();
     
-    // Cancel any current fades
-    if (this.#fadeEffectFunc) {
-      this.clearFunction(this.#fadeEffectFunc)
+    // Cancel fade-in if it's in progress
+    let fadeConfig = this.#currentRoom.getRoomFadeConfig()[fadeType];
+    
+    // Calculate rate of change for the fade overlay opacity
+    this.#fadeValue = 100 / fadeConfig.fadeLength;
+    
+    // The lowest value for the fade out (used for delay effect)
+    let fadeOutMinimumLevel = 0 - (fadeConfig.pauseLength * this.#fadeValue);
+    
+    // Only set the fade level if we're fading in
+    if (fadeType === 'fadeIn') {
+      this.#fadeLevel = fadeOutMinimumLevel;
     }
     
-    if (this.#fadeDoneFunc) {
-      this.clearFunction(this.#fadeDoneFunc)
+    // Store the fade color for when we render if
+    this.#fadeColor = fadeConfig.fadeColor;
+    
+    // Set up function to handle the fade progression
+    this.#fadeFunc = () => {
+      this.#fadeLevel += this.#fadeValue;
+      
+      if (
+        (
+          fadeType === 'fadeIn'
+          &&
+          this.#fadeLevel >= 100
+        )
+        ||
+        (
+          fadeType === 'fadeOut'
+          &&
+          this.#fadeLevel <= fadeOutMinimumLevel
+        )
+      ) {
+        this.#fadeLevel = (fadeType === 'fadeIn') ? 100 : 0;
+        
+        this.clearFunction(this.#fadeFunc);
+        
+        if (finishedCallback) {
+          finishedCallback();
+        }
+      }
+    };
+    
+    // Run the function every frame
+    this.repeatFunction(this.#fadeFunc, 1);
+    
+    // Fade out music (if specified)
+    if (fadeMusic) {
+      this.stopMusic(this.#fadeLevel / this.#fadeValue);
     }
-    
-    // Set the room's current fade type (used for rendering the fade overlay)
-    this._currentRoom._currentFade = fadeType
-    
-    // Get the configuration for this fade
-    local fadeConf = self._currentRoom._fadeConf[fadeType]
-    
-    // Set up function to handle fade-in/out
-    local fadeEffectFunc = function()
-      self._currentRoom._fadeLevel =
-        self._currentRoom._fadeLevel + fadeConf.fadeValue
-    end
-    
-    // Run it every frame, and store it in case we need to cancel it early
-    self:repeatFunction(fadeEffectFunc, 1)
-    self._currentRoom._fadeEffectFunc = fadeEffectFunc
-    
-    // Set up delayed function to clear fade-effect function when fade is done
-    local fadeDoneFunc = function()
-      -- Clear fade-effect function
-      self:clearFunction(fadeEffectFunc)
-      
-      -- Ensure fade overlay is either completely hidden or completely shown
-      if (fadeType == "fadeIn") then
-        self._currentRoom._fadeLevel = 100
-      else
-        self._currentRoom._fadeLevel = 0
-      end
-    end
-    
-    // Run it when fade's done, and store it in case we need to cancel it early
-    self:delayFunction(fadeDoneFunc, fadeConf.fadeFrames + fadeConf.pauseFrames)
-    self._currentRoom._fadeDoneFunc = fadeDoneFunc
-    
-    // Calculate how long until we need to wait until we execute the callback
-    // This value changes if we're in the midst of a fade-in
-    local totalDuration = fadeConf.fadeFrames
-    totalDuration       = totalDuration * (self._currentRoom._fadeLevel / 100)
-    totalDuration       = math.max(totalDuration, 0)
-    
-    // Fade music (if specified)
-    if (fadeMusic) then
-      self:stopMusic(totalDuration)
-    end
-    
-    // Set delayed function to execute when fade is finished
-    // This is currently only for fade-outs
-    if (finishedCallback) then
-      -- Include the pause frames so we don't run the function early
-      totalDuration = totalDuration + fadeConf.pauseFrames
-      
-      -- Execute callback
-      self:delayFunction(finishedCallback, totalDuration)
-    end
-    */
   }
   
   // ---------------------------------------------------------------------------
   // Queued functions
   // ---------------------------------------------------------------------------
   
-  // TODO: This
+  delayFunction(callback, numFrames) {
+    // Store function to be delay-fired by framework
+    this.#queuedFunctions.push({
+      callback        : callback,
+      remainingFrames : numFrames
+    });
+  }
+  
+  repeatFunction(callback, numFrames, fireImmediately) {
+    // Do an initial run of the function if specified
+    if (fireImmediately) {
+      callback();
+    }
+    
+    // Store function to be repeat-fired by framework
+    this.#queuedFunctions.push({
+      callback        : callback,
+      remainingFrames : numFrames,
+      repeatValue     : numFrames
+    });
+  }
+  
+  clearFunction(callback) {
+    // Find function and mark it to be cleared out
+    let foundFunc = this.#queuedFunctions.find(f => f.callback === callback);
+    if (foundFunc) {
+      foundFunc.cancelled = true;
+    }
+  }
   
   // ---------------------------------------------------------------------------
   // Creating game objects
@@ -726,6 +749,31 @@ export class MintCrate {
       this.#fpsFrameLast = fpsTimeNow;
     }
     
+    // Handle delayed/repeated functions
+    for (let i = this.#queuedFunctions.length - 1; i >= 0; i--) {
+      let func = this.#queuedFunctions[i];
+      
+      // Tick function's wait timer
+      func.remainingFrames = func.remainingFrames - 1;
+      
+      // Remove function if it's been cancelled
+      if (func.cancelled) {
+        this.#queuedFunctions.splice(i, 1);
+      // Or, fire it if its timer has run out
+      } else if (func.remainingFrames <= 0) {
+        // Run the function
+        func.callback();
+        
+        // If function is set to repeat, then reset its timer
+        if (func.repeatValue) {
+          func.remainingFrames = func.repeatValue;
+        // Otherwise, remove it
+        } else {
+          this.#queuedFunctions.splice(i, 1);
+        }
+      }
+    }
+    
     // Run room update code
     this.#roomHasChanged = false;
     if (this.#currentRoom && this.#currentRoom.update) {
@@ -740,7 +788,7 @@ export class MintCrate {
   #clearCanvas() {
     if (this.#currentRoom) {
       let rgb = this.#currentRoom.getRoomBackgroundColor();
-      this.#backContext.fillStyle = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+      this.#backContext.fillStyle = MintUtil.rgbToString(rgb.r, rgb.g, rgb.b);
     } else {
       this.#backContext.fillStyle = 'black';
     }
@@ -765,6 +813,25 @@ export class MintCrate {
   #draw() {
     // Prepare canvas for rendering frame
     this.#clearCanvas();
+    
+    // Draw fade in/out effect
+    if (this.#fadeLevel < 100) {
+      // Set color of fade
+      this.#backContext.fillStyle = MintUtil.rgbToString(
+        this.#fadeColor.r,
+        this.#fadeColor.g,
+        this.#fadeColor.b,
+        1 - (this.#fadeLevel / 100)
+      );
+      
+      // Render fade
+      this.#backContext.fillRect(
+        this.#camera.x,
+        this.#camera.y,
+        this.#BASE_WIDTH,
+        this.#BASE_HEIGHT
+      );
+    }
     
     // Draw FPS debug overlay
     this.#drawText(

@@ -5,7 +5,7 @@
 
 'use strict';
 
-import { MathX } from "./mathx.js";
+import { MintMath } from "./mintmath.js";
 
 export class Room {
   
@@ -18,8 +18,6 @@ export class Room {
   #height;
   #backgroundColor;
   
-  #fadeLevel;
-  #fadeType;
   #fadeInConfig;
   #fadeOutConfig;
   
@@ -39,8 +37,6 @@ export class Room {
     this.#backgroundColor = {r: 0, g: 0, b: 0};
     
     // Initialize fade in/out settings
-    this.#fadeLevel     = 100;
-    this.#fadeType      = "fadeIn";
     this.#fadeInConfig  = {enabled: false};
     this.#fadeOutConfig = {enabled: false};
   }
@@ -65,21 +61,29 @@ export class Room {
   // Methods for configuring the room's fade in/out settings
   // -----------------------------------------------------------------------------
   
-  getRoomFadeInfo() {
+  getRoomFadeConfig() {
     return {
-      fadeLevel    : this.#fadeLevel,
-      fadeType     : this.#fadeType,
-      fadeInConfig : this.#fadeInConfig,
-      fadeOutConfig: this.#fadeOutConfig
+      fadeIn  : this.#fadeInConfig,
+      fadeOut : this.#fadeOutConfig
     };
   }
   
-  configureRoomFadeIn(fadeDuration, pauseDuration, color) {
-    
+  configureRoomFadeIn(fadeLength, pauseLength = 0, color = {r: 0, g: 0, b: 0}) {
+    this.#fadeInConfig = {
+      enabled    : true,
+      fadeLength : fadeLength,
+      pauseLength: pauseLength,
+      fadeColor  : {r: color.r, g: color.g, b: color.b}
+    };
   }
   
-  configureRoomFadeOut(fadeDuration, pauseDuration, color) {
-    
+  configureRoomFadeOut(fadeLength, pauseLength = 0, color = {r: 0, g: 0, b: 0}) {
+    this.#fadeOutConfig = {
+      enabled    : true,
+      fadeLength : fadeLength,
+      pauseLength: pauseLength,
+      fadeColor  : {r: color.r, g: color.g, b: color.b}
+    };
   }
   
   // ---------------------------------------------------------------------------
@@ -96,9 +100,9 @@ export class Room {
   
   setRoomBackgroundColor(r, g, b) {
     // Constrain color values
-    r = MathX.clamp(r, 0, 255);
-    g = MathX.clamp(g, 0, 255);
-    b = MathX.clamp(b, 0, 255);
+    r = MintMath.clamp(r, 0, 255);
+    g = MintMath.clamp(g, 0, 255);
+    b = MintMath.clamp(b, 0, 255);
     
     // Set background clear color
     this.#backgroundColor = {r: r, g: g, b: b};
