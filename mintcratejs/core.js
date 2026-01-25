@@ -5,7 +5,8 @@
 
 'use strict';
 
-import { Room }    from "./room.js";
+import { Room }     from "./room.js";
+import { Backdrop } from "./backdrop.js";
 import { MintUtil } from "./mintutil.js";
 
 import { SYSTEM_MEDIA_B64 } from "./img/b64.js";
@@ -13,7 +14,7 @@ import { SYSTEM_MEDIA_B64 } from "./img/b64.js";
 export class MintCrate {
   
   //----------------------------------------------------------------------------
-  // Private variables
+  // Member variables
   //----------------------------------------------------------------------------
   
   #frontCanvas;
@@ -85,7 +86,11 @@ export class MintCrate {
   #COLLIDER_SHAPES;
   #loadingQueue;
   #data;
-  #instances;
+  actives;
+  backdrops;
+  paragraphs;
+  #tiles;
+  #linearInstanceList;
   #drawOrders;
   
   //----------------------------------------------------------------------------
@@ -229,12 +234,16 @@ export class MintCrate {
       music     : {}
     };
     
-    this.#instances = {
+    this.actives = {};
+    this.backdrops = {};
+    this.paragraphs = {};
+    this.#tiles = [];
+    
+    this.#linearInstanceList = {
       actives    : [],
       backdrops  : [],
-      paragraphs : [],
-      tiles      : []
-    };
+      paragraphs : []
+    }
     
     this.#drawOrders = {
       backdrops : [],
@@ -522,9 +531,9 @@ export class MintCrate {
   
   #performRoomChange(room, persistAudio) {
     // Wipe current entity instances
-    for (const key in this.#instances) {
-      this.#instances[key] = [];
-    }
+    this.actives = {};
+    this.backdrops = {};
+    this.paragraphs = {};
     
     // Wipe draw-order tables
     for (const key in this.#drawOrders) {
@@ -666,7 +675,23 @@ export class MintCrate {
   // Creating game objects
   // ---------------------------------------------------------------------------
   
-  // TODO: This
+  addBackdrop(name, x, y, options = {}) {
+    let backdrop = new Backdrop(
+      name,
+      this.backdrops,
+      this.#linearInstanceList.backdrops,
+      this.#drawOrders.backdrops,
+      x,
+      y,
+      240,
+      172
+    );
+    
+    this.#linearInstanceList.backdrops.push(backdrop);
+    this.#drawOrders.backdrops.push(backdrop);
+    
+    return backdrop;
+  }
   
   // ---------------------------------------------------------------------------
   // Camera management
@@ -819,6 +844,22 @@ export class MintCrate {
     // Prepare canvas for rendering frame
     this.#clearCanvas();
     
+    // Draw backdrops
+    for (const backdrop of this.#drawOrders.backdrops) {
+      // If backdrops isn't visible, then skip drawing it
+      // if (!backdrop.isVisible() || backdrop.getOpacity() === 0) {
+        // continue;
+      // }
+      
+      // Get backdrop image and rendering properties
+      let img = this.#data.backdrops[backdrop.getName()].img;
+      let isMosaic = backdrop.mosaic;
+      let isNinePatch = backdrop.ninePatch;
+      
+      // Draw backdrop image
+      this.#backContext.drawImage(img, backdrop.getX(), backdrop.getY(), backdrop.getWidth(), backdrop.getHeight());
+    }
+    
     // Draw fade in/out effect
     if (this.#fadeLevel < 100) {
       // Set color of fade
@@ -854,9 +895,9 @@ export class MintCrate {
           this.#currentRoom.getRoomWidth() +
             " x " +
             this.#currentRoom.getRoomHeight(),
-          "ACTS: " + this.#instances.actives.length,
-          "BAKS: " + this.#instances.backdrops.length,
-          "TEXT: " + this.#instances.paragraphs.length
+          "ACTS: " + this.#linearInstanceList.actives.length,
+          "BAKS: " + this.#linearInstanceList.backdrops.length,
+          "TEXT: " + this.#linearInstanceList.paragraphs.length
         ],
         this.#data.fonts['system_counter'],
         this.#camera.x,
