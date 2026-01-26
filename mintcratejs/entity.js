@@ -25,8 +25,8 @@ export class Entity {
   #isVisible;
   #opacity;
   
-  _x;
-  _y;
+  #x;
+  #y;
   
   //----------------------------------------------------------------------------
   // Constructor
@@ -43,8 +43,8 @@ export class Entity {
     this.#isVisible = true;
     this.#opacity = 1.0;
     
-    this._x = x;
-    this._y = y;
+    this.#x = x;
+    this.#y = y;
   }
   
   // ---------------------------------------------------------------------------
@@ -84,39 +84,39 @@ export class Entity {
   // ---------------------------------------------------------------------------
   
   getX() {
-    return this._x;
+    return this.#x;
   }
   
   getY() {
-    return this._y;
+    return this.#y;
   }
   
   setX(x) {
     // Update position
-    this._x = x;
+    this.#x = x;
     
     // Update collider's position
     if (this._collider) {
-      this._collider.x = this._x + this._colliderOffsetX
+      this._collider.x = this.#x + this._colliderOffsetX
     }
   }
   
   setY(y) {
     // Update position
-    this._y = y;
+    this.#y = y;
     
     // Update collider's position
     if (this._collider) {
-      this._collider.y = this._y + this._colliderOffsetY
+      this._collider.y = this.#y + this._colliderOffsetY
     }
   }
   
   moveX(pixels) {
-    this.setX(this._x + pixels);
+    this.setX(this.#x + pixels);
   }
   
   moveY(pixels) {
-    this.setY(this._y + pixels);
+    this.setY(this.#y + pixels);
   }
   
   // ---------------------------------------------------------------------------

@@ -50,7 +50,7 @@ export class MintCrate {
   #cameraBounds;
   #cameraIsBound;
   
-  #tilemapIsLoaded;
+  #tilemapIsSet;
   #tilemapFullName;
   #tilemapName;
   #layoutName;
@@ -63,6 +63,9 @@ export class MintCrate {
   #quickBoot;
   #showFps;
   #showRoomInfo;
+  #showCameraInfo;
+  #showTilemapCollisionMasks
+  #showTilemapBehaviorValues
   #showActiveCollisionMasks;
   #showActiveInfo;
   #showActiveOriginPoints;
@@ -181,8 +184,7 @@ export class MintCrate {
     this.#cameraIsBound = false;
     
     // Tilemap
-    this.#tilemapIsLoaded = false;
-    this.#tilemapFullName = "";
+    this.#tilemapIsSet = false;
     this.#tilemapName     = "";
     this.#layoutName      = "";
     
@@ -192,13 +194,17 @@ export class MintCrate {
     this.#fadeColor = {r: 0, g: 0, b: 0};
     
     // Debug functionality
-    this.#quickBoot                = false;
-    this.#showFps                  = false;
-    this.#showRoomInfo             = false;
-    this.#showActiveCollisionMasks = false;
-    this.#showActiveInfo           = false;
-    this.#showActiveOriginPoints   = false;
-    this.#showActiveActionPoints   = false;
+    this.#quickBoot                 = false;
+    this.#showFps                   = false;
+    this.#showRoomInfo              = false;
+    this.#showCameraInfo            = false;
+    this.#showTilemapCollisionMasks = false;
+    this.#showTilemapBehaviorValues = false;
+    this.#showActiveCollisionMasks  = false;
+    this.#showActiveInfo            = false;
+    this.#showActiveOriginPoints    = false;
+    this.#showActiveActionPoints    = false;
+    
     
     // FPS limiter
     this.#currentFps    = 0;
@@ -252,8 +258,8 @@ export class MintCrate {
     
     // Entity creation
     this.#entityCreator = {
-      foreground: new EntityFactory(this.#instanceCollection, this.#linearInstanceLists, this.#drawOrders.foreground),
-      background: new EntityFactory(this.#instanceCollection, this.#linearInstanceLists, this.#drawOrders.background)
+      foreground: new EntityFactory(this.#data, this.#instanceCollection, this.#linearInstanceLists, this.#drawOrders.foreground),
+      background: new EntityFactory(this.#data, this.#instanceCollection, this.#linearInstanceLists, this.#drawOrders.background)
     };
     
     // Prepare canvas.
@@ -438,8 +444,28 @@ export class MintCrate {
     return img;
   }
   
+  defineActives(data) {
+    this.#loadingQueue.actives = data;
+  }
+  
   defineBackdrops(data) {
     this.#loadingQueue.backdrops = data;
+  }
+  
+  defineFonts(data) {
+    this.#loadingQueue.fonts = data;
+  }
+  
+  defineTilemaps(data) {
+    this.#loadingQueue.tilemaps = data;
+  }
+  
+  defineSounds(data) {
+    this.#loadingQueue.sounds = data;
+  }
+  
+  defineMusic(data) {
+    this.#loadingQueue.music = data;
   }
   
   #loadBackdrops() {
@@ -448,7 +474,7 @@ export class MintCrate {
     
     let promises = [];
     for (const item of this.#loadingQueue.backdrops ?? []) {
-      // Load and store backdrop image
+      // Load, process, and store backdrop
       let promise =
         this.#loadImage(`${this.#RES_PATHS.backdrops}/${item.name}.png`)
         .then((img) => this.#loadIndividualBackdrop(item, img));
@@ -457,10 +483,46 @@ export class MintCrate {
     
     // Proceed when loading is done
     Promise.allSettled(promises).then((results) => {
+      if (this.#initFailed(results)) {
+        return;
+      }
+      
+      // this.#loadFonts();
+      this.#loadTilemaps();
+    });
+  }
+  
+  #loadTilemaps() {
+    console.log('Loading Tilemaps');
+    this.#displayLoadingScreen('Loading Tilemaps');
+    
+    let promises = [];
+    for (const item of this.#loadingQueue.tilemaps ?? []) {
+      // Tilemap's base name (refers to the image file)
+      if (!item.name.includes('_')) {
+        // Load, process, and store tilemap data
+        let promise =
+          this.#loadImage(`${this.#RES_PATHS.tilemaps}/${item.name}.png`)
+          .then((img) => this.#loadIndividualTilemap(item, img));
+        promises.push(promise);
+      // Tilemap's actual map data layout files
+      } else {
+        // Load, process, and store tilemap layout
+        let promise =
+          fetch(`${this.#RES_PATHS.tilemaps}/${item.name}.json`)
+          .then((response) => response.json())
+          .then((data) => this.#loadIndividualTilemapLayout(item, data));
+        
+        promises.push(promise);
+      }
+    }
+    
+    // Proceed when loading is done
+    Promise.allSettled(promises).then((results) => {
       if (this.#initFailed(results))
         return;
       
-      // this.#loadFonts();
+      // this.#loadSounds();
       this.#initDone();
     });
   }
@@ -477,6 +539,134 @@ export class MintCrate {
       this.#data.backdrops[`${item.name}_mosaic`] =
         this.#backContext.createPattern(img, "repeat");
     }
+  }
+  
+  #loadIndividualTilemap(item, img) {
+    this.#data.tilemaps[item.name] = {
+      img: this.#colorKeyImage(img),
+      tileWidth: item.tileWidth,
+      tileHeight: item.tileHeight,
+      clippingRects: [],
+      layouts: {}
+    };
+    
+    for (let y = 0; y < img.height; y += item.tileHeight) {
+      for (let x = 0; x < img.width; x += item.tileWidth) {
+        if (x < img.width && y < img.height) {
+          this.#data.tilemaps[item.name].clippingRects.push({x:x, y:y});
+        }
+      }
+    }
+  }
+  
+  #loadIndividualTilemapLayout(item, layoutData) {
+    let nameParts = item.name.split('_');
+    let tilemapName = nameParts[0];
+    let layoutName = nameParts[1];
+    
+    this.#data.tilemaps[tilemapName].layouts[layoutName] = {
+      tiles: layoutData.tiles
+    };
+    
+    this.#generateCollisionMap(tilemapName, layoutName, layoutData.behaviors);
+  }
+  
+  #generateCollisionMap(tilemapName, layoutName, behaviorMap) {
+    // Get layout data
+    let layout = this.#data.tilemaps[tilemapName].layouts[layoutName];
+    
+    // Generate simple on/off behavior map if none was provided
+    let bMap = behaviorMap;
+    
+    if (!bMap) {
+      bMap = [];
+      for (let row = 0; row < layout.tiles.length; row++) {
+        bMap[row] = [];
+        for (let col = 0; col < layout.tiles[row].length; col++) {
+          let tileNumber = layout.tiles[row][col];
+          bMap[row][col] = (tileNumber === 0) ? 0 : 1;
+        }
+      }
+    }
+    
+    console.log(layoutName);
+    console.log(bMap);
+    
+    // Generate collision map
+    layout.collisionMasks = {};
+    
+    for (let row = 0; row < bMap.length; row++) {
+      for (let col = 0; col < bMap[row].length; col++) {
+        let tileType = bMap[row][col];
+        
+        // Skip if empty tile
+        if (tileType === 0) {
+          continue;
+        }
+        
+        // If tile found, perform a two-step scan for a full quad
+        let start = {row: row, col: col};
+        let stop  = {row: row, col: col};
+        
+        // Find ending column
+        for (let scanCol = start.col+1; scanCol < bMap[row].length; scanCol++) {
+          let scanTileType = bMap[row][scanCol];
+          if (scanTileType === 0 || scanTileType !== tileType) {
+            break;
+          } else {
+            stop.col = scanCol;
+          }
+        }
+        
+        // Find ending row
+        let done = false;
+        for (let scanRow = start.row+1; scanRow < bMap.length; scanRow++) {
+          for (let scanCol = start.col; scanCol <= stop.col; scanCol++) {
+            let scanTileType = bMap[scanRow][scanCol];
+            done = (scanTileType === 0 || scanTileType !== tileType);
+            if (done) { break; }
+          }
+          
+          if (done) { break; }
+          
+          stop.row = scanRow;
+        }
+        
+        // Remove from collision data map
+        for (let remRow = start.row; remRow <= stop.row; remRow++) {
+          for (let remCol = start.col; remCol <= stop.col; remCol++) {
+            bMap[remRow][remCol] = 0;
+          }
+        }
+        
+        // Store as collision mask
+        if (!layout.collisionMasks[tileType]) {
+          layout.collisionMasks[tileType] = [];
+        }
+        
+        layout.collisionMasks[tileType].push({
+          s: this.#COLLIDER_SHAPES.RECTANGLE,
+          x: start.col,
+          y: start.row,
+          w: stop.col - start.col + 1,
+          h: stop.row - start.row + 1,
+          collision: false
+        });
+        
+      }
+    }
+    
+    let tilemapData = this.#data.tilemaps[tilemapName];
+    for (const tileType in layout.collisionMasks) {
+      for (const mask of layout.collisionMasks[tileType]) {
+        mask.x *= tilemapData.tileWidth;
+        mask.y *= tilemapData.tileHeight;
+        mask.w *= tilemapData.tileWidth;
+        mask.h *= tilemapData.tileHeight;
+      }
+    }
+    
+    console.log(layout.collisionMasks);
   }
   
   #initFailed(results) {
@@ -581,7 +771,7 @@ export class MintCrate {
     this.#isChangingRooms = false;
     
     // Create new room
-    let newRoom = new room(this, this.#ROOM_LIST);
+    let newRoom = new room(this);
     
     // Store reference to new room, but only if it's the last in a queue.
     // This can happen if a room calls changeRoom() from its constructor.
@@ -653,6 +843,10 @@ export class MintCrate {
     }
   }
   
+  getRoomList() {
+    return this.#ROOM_LIST;
+  }
+  
   // ---------------------------------------------------------------------------
   // Queued functions
   // ---------------------------------------------------------------------------
@@ -688,7 +882,7 @@ export class MintCrate {
   }
   
   // ---------------------------------------------------------------------------
-  // Creating game objects
+  // Game object management
   // ---------------------------------------------------------------------------
   
   getEntityList() {
@@ -709,7 +903,21 @@ export class MintCrate {
   // Managing tilemaps
   // ---------------------------------------------------------------------------
   
-  // TODO: This
+  setTilemap(tilemapLayoutName) {
+    let nameParts = tilemapLayoutName.split('_');
+    this.#tilemapIsSet = true;
+    this.#tilemapName = nameParts[0];
+    this.#layoutName = nameParts[1];
+  }
+  
+  #getTilemapCollisionMasks() {
+    return (
+      this.#data
+      .tilemaps[this.#tilemapName]
+      .layouts[this.#layoutName]
+      .collisionMasks
+    );
+  }
   
   // ---------------------------------------------------------------------------
   // Collision testing
@@ -755,6 +963,38 @@ export class MintCrate {
   
   setRoomInfoVisibility(enabled) {
     this.#showRoomInfo = enabled;
+  }
+  
+  setCameraInfoVisibility(enabled) {
+    this.#showCameraInfo = enabled;
+  }
+  
+  setTilemapCollisionMaskVisibility(enabled) {
+    this.#showTilemapCollisionMasks = enabled;
+  }
+  
+  setTilemapBehaviorValueVisibility(enabled) {
+    this.#showTilemapBehaviorValues = enabled;
+  }
+  
+  setActiveCollisionMaskVisibility(enabled) {
+    this.#showActiveCollisionMasks = enabled;
+  }
+  
+  setActiveInfoVisibility(enabled) {
+    this.#showActiveInfo = enabled;
+  }
+  
+  setOriginPointVisibility(enabled) {
+    this.#showActiveOriginPoints = enabled;
+  }
+  
+  setActionPointVisibility(enabled) {
+    this.#showActiveActionPoints = enabled
+  }
+  
+  setAllDebugOverlayVisibility(enabled) {
+    
   }
   
   // ---------------------------------------------------------------------------
@@ -850,39 +1090,47 @@ export class MintCrate {
     // Prepare canvas for rendering frame
     this.#clearCanvas();
     
-    // Draw backdrops
-    for (const backdrop of this.#drawOrders.background) {
-      if (backdrop.getEntityType() !== 'backdrop') {
-        continue;
-      }
+    // Draw background layer entities
+    this.#drawEntities('background');
+    
+    // Draw tilemap
+    if (this.#tilemapIsSet) {
+      let tilemap = this.#data.tilemaps[this.#tilemapName];
+      let layout  = tilemap.layouts[this.#layoutName];
       
-      // If backdrops isn't visible, then skip drawing it
-      if (!backdrop.isVisible() || backdrop.getOpacity() === 0) {
-        continue;
-      }
-      
-      // Get backdrop image and rendering properties
-      let data = this.#data.backdrops[backdrop.getName()];
-      let img = data.img;
-      let isMosaic = data.mosaic;
-      let isNinePatch = data.ninePatch;
-      
-      this.#backContext.globalAlpha = backdrop.getOpacity();
-      
-      // Draw backdrop image
-      if (!isMosaic && !isNinePatch) {
-        this.#backContext.drawImage(img, backdrop.getX(), backdrop.getY(), backdrop.getWidth(), backdrop.getHeight());
-      } else if (isMosaic) {
-        this.#backContext.fillStyle = this.#data.backdrops[backdrop.getName() + '_mosaic'];
-        this.#backContext.translate(backdrop.getX(), backdrop.getY());
-        this.#backContext.fillRect(0, 0, 300, 300);
-        this.#backContext.setTransform(1, 0, 0, 1, 0, 0);
-      } else if (isNinePatch) {
-        
+      // Iterate through tilemap layout, drawing tiles
+      for (let row = 0; row < layout.tiles.length; row++) {
+        for (let col = 0; col < layout.tiles[row].length; col++) {
+          // Get tile graphic index
+          let tileNumber = layout.tiles[row][col];
+          
+          // Only draw if it's not 0 (not empty)
+          if (tileNumber > 0) {
+            let clippingRect = tilemap.clippingRects[tileNumber-1];
+            
+            this.#backContext.drawImage(
+              tilemap.img,
+              clippingRect.x,
+              clippingRect.y,
+              tilemap.tileWidth,
+              tilemap.tileHeight,
+              (col * tilemap.tileWidth)  - this.#camera.x,
+              (row * tilemap.tileHeight) - this.#camera.y,
+              tilemap.tileWidth,
+              tilemap.tileHeight
+            );
+          }
+        }
       }
     }
     
+    // Draw foreground layer entities
+    this.#drawEntities('foreground');
+    
+    // Reset alpha rendering value
     this.#backContext.globalAlpha = 1.0;
+    
+    // Draw Text
     
     // Draw fade in/out effect
     if (this.#fadeLevel < 100) {
@@ -901,6 +1149,56 @@ export class MintCrate {
         this.#BASE_WIDTH,
         this.#BASE_HEIGHT
       );
+    }
+    
+    // Draw debug graphics for tilemap
+    if (
+      (this.#showTilemapCollisionMasks || this.#showTilemapBehaviorValues) &&
+      this.#tilemapIsSet
+    ) {
+      // Set border color
+      this.#backContext.strokeStyle = 'rgb(0 0 255 / 50%)';
+      
+      let tilemapCollisionMasks = this.#getTilemapCollisionMasks();
+      
+      for (const tileType in tilemapCollisionMasks) {
+        let maskList = tilemapCollisionMasks[tileType];
+        
+        for (const mask of maskList) {
+          // Draw collision masks
+          if (this.#showTilemapCollisionMasks) {
+            // Set fill color
+            this.#backContext.fillStyle = (mask.collision)
+              ? 'rgb(0 255 0 / 50%)'
+              : 'rgb(255 0 0 / 50%)';
+            
+            this.#backContext.fillRect(
+              mask.x+0.5 - this.#camera.x,
+              mask.y+0.5 - this.#camera.y,
+              mask.w-1,
+              mask.h-1
+            );
+            
+            this.#backContext.strokeRect(
+              mask.x+0.5 - this.#camera.x,
+              mask.y+0.5 - this.#camera.y,
+              mask.w-1,
+              mask.h-1
+            );
+          }
+          
+          // Draw collision mask behavior numbers
+          if (this.#showTilemapBehaviorValues) {
+            this.#drawText(
+              [tileType],
+              this.#data.fonts['system_counter'],
+              mask.x + 2 - this.#camera.x,
+              mask.y + 2 - this.#camera.y
+              // 3, 0, false
+            );
+          }
+        }
+      }
     }
     
     // Draw FPS debug overlay
@@ -932,6 +1230,56 @@ export class MintCrate {
     
     // Copy offscreen canvas to visible canvas
     this.#renderFrame();
+  }
+  
+  #drawEntities(layerName) {
+    for (const entity of this.#drawOrders[layerName]) {
+      // Skip drawing entity if it's not visible
+      if (!entity.isVisible() || entity.getOpacity() === 0) {
+        continue;
+      }
+      
+      let entityType = entity.getEntityType();
+      
+      // Set alpha rendering value
+      this.#backContext.globalAlpha = entity.getOpacity();
+      
+      // Draw actives
+      if (entityType === "active") {
+        
+      // Draw backdrops
+      } else if (entityType === "backdrop") {
+        // Get backdrop image and rendering properties
+        let data = this.#data.backdrops[entity.getName()];
+        let img = data.img;
+        let isMosaic = data.mosaic;
+        let isNinePatch = data.ninePatch;
+        
+        // Draw backdrop image
+        if (!isMosaic && !isNinePatch) {
+          this.#backContext.drawImage(img, entity.getX(), entity.getY(), entity.getWidth(), entity.getHeight());
+        } else if (isMosaic) {
+          this.#backContext.fillStyle = this.#data.backdrops[entity.getName() + '_mosaic'];
+          this.#backContext.translate(entity.getX(), entity.getY());
+          this.#backContext.fillRect(0, 0, 300, 300);
+          this.#backContext.setTransform(1, 0, 0, 1, 0, 0);
+        } else if (isNinePatch) {
+          
+        }
+      
+      // Draw paragraphs
+      } else if (entityType === "paragraph") {
+        // Draw text
+        this.#drawText(
+          entity.getTextLines(),
+          this.#data.fonts[entity.getName()],
+          entity.getX(),
+          entity.getY(),
+          entity.getLineSpacing(),
+          entity.getAlignment()
+        );
+      }
+    }
   }
   
   #drawText(

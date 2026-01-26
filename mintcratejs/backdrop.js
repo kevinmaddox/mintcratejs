@@ -14,8 +14,6 @@ export class Backdrop extends Entity {
   //----------------------------------------------------------------------------
   
   #name;
-  #x;
-  #y;
   
   #width;
   #height;
