@@ -3,12 +3,8 @@
 // A utility library for assorted mathematical functions
 // -----------------------------------------------------------------------------
 
-export class MintMath {
-  constructor() {
-    
-  }
-  
-  static clamp(value, limitLower, limitUpper) {
-    return Math.max(limitLower, Math.min(limitUpper, value))
-  }
-}
+export let MintMath  = {};
+
+MintMath.clamp = function(value, limitLower, limitUpper) {
+  return Math.max(limitLower, Math.min(limitUpper, value));
+};

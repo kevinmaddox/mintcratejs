@@ -6,6 +6,7 @@
 'use strict';
 
 import { MintUtil } from "./mintutil.js";
+import { MintMath } from "./mintmath.js";
 
 export class Entity {
   
@@ -15,9 +16,6 @@ export class Entity {
   
   #name;
   
-  #x;
-  #y;
-  
   #instances;
   #linearInstanceList;
   #drawOrder;
@@ -26,6 +24,9 @@ export class Entity {
   #isVisible;
   #opacity;
   
+  _x;
+  _y;
+  
   //----------------------------------------------------------------------------
   // Constructor
   //----------------------------------------------------------------------------
@@ -33,16 +34,15 @@ export class Entity {
   constructor(name, instances, linearInstanceList, drawOrder, x, y) {
     this.#name = name;
     
-    this.#x = x;
-    this.#y = y;
-    
     this.#instances = instances;
     this.#linearInstanceList = linearInstanceList;
     this.#drawOrder = drawOrder;
     
-    this.#wasDestroyed = false;
     this.#isVisible = true;
     this.#opacity = 1.0;
+    
+    this._x = x;
+    this._y = y;
   }
   
   // ---------------------------------------------------------------------------
@@ -78,11 +78,87 @@ export class Entity {
   // ---------------------------------------------------------------------------
   
   getX() {
-    return this.#x;
+    return this._x;
   }
   
   getY() {
-    return this.#y;
+    return this._y;
+  }
+  
+  setX(x) {
+    // Update position
+    this._x = x;
+    
+    // Update collider's position
+    if (this._collider) {
+      this._collider.x = this._x + this._colliderOffsetX
+    }
+  }
+  
+  setY(y) {
+    // Update position
+    this._y = y;
+    
+    // Update collider's position
+    if (this._collider) {
+      this._collider.y = this._y + this._colliderOffsetY
+    }
+  }
+  
+  moveX(pixels) {
+    this.setX(this._x + pixels);
+  }
+  
+  moveY(pixels) {
+    this.setY(this._y + pixels);
+  }
+  
+  // ---------------------------------------------------------------------------
+  // Methods for managing draw order
+  // ---------------------------------------------------------------------------
+  
+  bringForward() {
+    let index = this.#drawOrder.findIndex((entity) => entity === this);
+    MintUtil.array.moveItemRight(this.#drawOrder, index);
+  }
+  
+  sendBackward() {
+    let index = this.#drawOrder.findIndex((entity) => entity === this);
+    MintUtil.array.moveItemLeft(this.#drawOrder, index);
+  }
+  
+  bringToFront() {
+    let index = this.#drawOrder.findIndex((entity) => entity === this);
+    MintUtil.array.moveItemToEnd(this.#drawOrder, index);
+  }
+  
+  sendToBack() {
+    let index = this.#drawOrder.findIndex((entity) => entity === this);
+    MintUtil.array.moveItemToStart(this.#drawOrder, index);
+  }
+  
+  // ---------------------------------------------------------------------------
+  // Methods for managing visibility
+  // ---------------------------------------------------------------------------
+  
+  isVisible() {
+    return this.#isVisible;
+  }
+  
+  setVisibility(isVisible) {
+    this.#isVisible = isVisible;
+  }
+  
+  getOpacity() {
+    return this.#opacity;
+  }
+  
+  setOpacity(opacity) {
+    this.#opacity = MintMath.clamp(opacity, 0, 1);
+  }
+  
+  adjustOpacity(opacity) {
+    this.#opacity = MintMath.clamp(this.#opacity + opacity, 0, 1);
   }
 }
 

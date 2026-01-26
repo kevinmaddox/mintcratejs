@@ -443,12 +443,10 @@ export class MintCrate {
     let promises = [];
     for (const item of this.#loadingQueue.backdrops ?? []) {
       // Load and store backdrop image
-      promises.push(this.#loadImage(`${this.#RES_PATHS.backdrops}/${item.name}.png`)
-        .then((img) =>
-          this.#data.backdrops[item.name] = {
-            img: this.#colorKeyImage(img),
-            repeat: item.repeat ?? false
-          }));
+      let promise =
+        this.#loadImage(`${this.#RES_PATHS.backdrops}/${item.name}.png`)
+        .then((img) => this.#loadIndividualBackdrop(item, img));
+      promises.push(promise);
     }
     
     // Proceed when loading is done
@@ -459,6 +457,20 @@ export class MintCrate {
       // this.#loadFonts();
       this.#initDone();
     });
+  }
+  
+  #loadIndividualBackdrop(item, img) {
+    this.#data.backdrops[item.name] = {
+      img: this.#colorKeyImage(img),
+      mosaic: item.mosaic ?? false,
+      ninePatch: item.ninePatch ?? false
+    };
+    
+    if (item.mosaic) {
+      console.log(item.name);
+      this.#data.backdrops[`${item.name}_mosaic`] =
+        this.#backContext.createPattern(img, "repeat");
+    }
   }
   
   #initFailed(results) {
@@ -847,18 +859,32 @@ export class MintCrate {
     // Draw backdrops
     for (const backdrop of this.#drawOrders.backdrops) {
       // If backdrops isn't visible, then skip drawing it
-      // if (!backdrop.isVisible() || backdrop.getOpacity() === 0) {
-        // continue;
-      // }
+      if (!backdrop.isVisible() || backdrop.getOpacity() === 0) {
+        continue;
+      }
       
       // Get backdrop image and rendering properties
-      let img = this.#data.backdrops[backdrop.getName()].img;
-      let isMosaic = backdrop.mosaic;
-      let isNinePatch = backdrop.ninePatch;
+      let data = this.#data.backdrops[backdrop.getName()];
+      let img = data.img;
+      let isMosaic = data.mosaic;
+      let isNinePatch = data.ninePatch;
+      
+      this.#backContext.globalAlpha = backdrop.getOpacity();
       
       // Draw backdrop image
-      this.#backContext.drawImage(img, backdrop.getX(), backdrop.getY(), backdrop.getWidth(), backdrop.getHeight());
+      if (!isMosaic && !isNinePatch) {
+        this.#backContext.drawImage(img, backdrop.getX(), backdrop.getY(), backdrop.getWidth(), backdrop.getHeight());
+      } else if (isMosaic) {
+        this.#backContext.fillStyle = this.#data.backdrops[backdrop.getName() + '_mosaic'];
+        this.#backContext.translate(backdrop.getX(), backdrop.getY());
+        this.#backContext.fillRect(0, 0, 300, 300);
+        this.#backContext.setTransform(1, 0, 0, 1, 0, 0);
+      } else if (isNinePatch) {
+        
+      }
     }
+    
+    this.#backContext.globalAlpha = 1.0;
     
     // Draw fade in/out effect
     if (this.#fadeLevel < 100) {
