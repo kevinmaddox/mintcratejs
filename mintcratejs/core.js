@@ -60,7 +60,7 @@ export class MintCrate {
   #fadeColor;
   #fadeFunc;
   
-  #quickBoot;
+  #devMode;
   #showFps;
   #showRoomInfo;
   #showCameraInfo;
@@ -107,8 +107,12 @@ export class MintCrate {
     baseWidth,
     baseHeight,
     roomList,
-    screenScale = 1
+    options = {}
   ) {
+    // Default options
+    options.screenScale = options.screenScale ?? 1;
+    options.devMode     = options.devMode ?? false;
+    
     // Initialize render canvases/contexts
     this.#frontCanvas = document.createElement('canvas');
     this.#frontCanvas.addEventListener('contextmenu',
@@ -142,7 +146,7 @@ export class MintCrate {
     this.#BASE_HEIGHT = baseHeight;
     
     // Graphics scaling values
-    this.#SCREEN_SCALE = screenScale;
+    this.#SCREEN_SCALE = options.screenScale;
     
     // RGB value sets and rendering context for color keying sprites
     this.#colorKeys = [];
@@ -197,7 +201,7 @@ export class MintCrate {
     this.#fadeColor = {r: 0, g: 0, b: 0};
     
     // Debug functionality
-    this.#quickBoot                 = false;
+    this.#devMode                   = options.devMode;
     this.#showFps                   = false;
     this.#showRoomInfo              = false;
     this.#showCameraInfo            = false;
@@ -207,7 +211,6 @@ export class MintCrate {
     this.#showActiveInfo            = false;
     this.#showActiveOriginPoints    = false;
     this.#showActiveActionPoints    = false;
-    
     
     // FPS limiter
     this.#currentFps    = 0;
@@ -311,7 +314,7 @@ export class MintCrate {
         return;
       }
       
-      if (this.#quickBoot) {
+      if (this.#devMode) {
         // this.#loadActives();
         this.#loadBackdrops();
       } else {
@@ -696,7 +699,7 @@ export class MintCrate {
     this.#displayLoadingScreen('Loading Complete!');
     this.#loadingQueue = null;
     
-    if (this.#quickBoot) {
+    if (this.#devMode) {
       this.changeRoom(this.#STARTING_ROOM);
       window.requestAnimationFrame(this.#gameLoop.bind(this));
     } else {
@@ -1089,7 +1092,7 @@ export class MintCrate {
   
   #keyHandler(e) {
     if (
-      !this.#gameHasFocus()
+      (!this.#gameHasFocus() && !this.#devMode)
       || (e.ctrlKey && (e.key === 'r' || e.key === 'R'))
     ) {
       return;
@@ -1136,10 +1139,6 @@ export class MintCrate {
   // ---------------------------------------------------------------------------
   // Debugging
   // ---------------------------------------------------------------------------
-  
-  setQuickBoot(enabled) {
-    this.#quickBoot = enabled;
-  }
   
   setFpsVisibility(enabled) {
     this.#showFps = enabled;
@@ -1213,7 +1212,7 @@ export class MintCrate {
       this.#fpsFrameLast = fpsTimeNow;
     }
     
-    if (!this.#gameHasFocus()) {
+    if (!this.#gameHasFocus() && !this.#devMode) {
       return;
     }
     
@@ -1425,7 +1424,7 @@ export class MintCrate {
     }
     
     // Draw overlay if game has lost focus
-    if (!this.#gameHasFocus()) {
+    if (!this.#gameHasFocus() && !this.#devMode) {
       this.#backContext.fillStyle = 'rgb(0 0 0 / 50%)';
       this.#backContext.fillRect(0, 0, this.#BASE_WIDTH, this.#BASE_HEIGHT);
       let font = this.#data.fonts['system_dialog'];
