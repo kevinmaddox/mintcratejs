@@ -6,6 +6,7 @@
 'use strict';
 
 import { InputHandler }  from "./inputhandler.js";
+import { Sound }         from "./sound.js";
 import { EntityFactory } from "./entityfactory.js";
 import { MintUtil }      from "./mintutil.js";
 import { MintMath }      from "./mintmath.js";
@@ -552,11 +553,14 @@ export class MintCrate {
     
     let promises = [];
     for (const item of this.#loadingQueue.sounds ?? []) {
+      // let promise =
+        // this.#loadAudioFile(`${this.#RES_PATHS.sounds}/${item.name}.ogg`);
       let promise =
         fetch(`${this.#RES_PATHS.sounds}/${item.name}.ogg`)
         .then((response) => response.arrayBuffer())
         .then((arrayBuffer) => this.#audioContext.decodeAudioData(arrayBuffer))
-        .then((audioBuffer) => this.#data.sounds[item.name] = audioBuffer);
+        .then((audioBuffer) => this.#loadAudioFile(item, audioBuffer));
+        // .then((audioBuffer) => this.#data.sounds[item.name] = audioBuffer);
       
       promises.push(promise);
     }
@@ -592,6 +596,13 @@ export class MintCrate {
       
       this.#initDone();
     });
+  }
+  
+  #loadAudioFile(item, audioBuffer) {
+    this.#data.sounds[item.name] = {
+      source: new Sound(this.#audioContext, audioBuffer),
+      localVolume: 1
+    };
   }
   
   #loadIndividualBackdrop(item, img) {
@@ -1193,40 +1204,29 @@ export class MintCrate {
   }
   
   playSound(soundName, options = {}) {
+    // Default params
     options.volume = options.volume ?? 1;
     options.pitch = options.pitch ?? 1;
     
-    let sound = {};
-    
-    // Retrieve sound data
-    let source = this.#audioContext.createBufferSource();
-    source.buffer = this.#data.sounds[soundName];
-    
-    // Set pitch
-    source.playbackRate.value = options.pitch;
-    
-    // Set looping properties
-    // source.loop
+    // Get sound data
+    let sound = this.#data.sounds[soundName];
     
     // Set volume
-    const gainNode = this.#audioContext.createGain();
-    gainNode.gain.value = options.volume;
+    sound.localVolume = options.volume;
+    sound.source.setVolume(options.volume * this.#masterSfxVolume);
     
-    // Store for later
-    sound.source = source;
-    sound.gainNode = gainNode;
-    sound.endCallback = () => { this.#destroySoundSource(sound); };
+    // Set pitch
+    sound.source.setPitch(options.pitch);
     
-    // Set up callback to destroy sound when it's done playing
-    source.addEventListener('ended', sound.endCallback);
-    
-    // Play sound and store it for the duration it's playing
-    source.connect(gainNode);
-    gainNode.connect(this.#audioContext.destination);
-    
-    source.start();
-    
-    this.#soundBuffer.push(sound);
+    // Play sound
+    sound.source.play();
+  }
+  
+  // https://github.com/WebAudio/web-audio-api-v2/issues/105
+  playMusic(trackName, fadeLength = 0) {
+    //Get currently-playing and to-be-switch-to music tracks
+    // let oldTrack = this.#data.music[this.#currentMusic]
+    // let newTrack = this.#data.music[trackName]
   }
   
   stopAllSounds() {
