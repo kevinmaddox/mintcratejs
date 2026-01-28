@@ -86,9 +86,11 @@ export class MintCrate {
   #isChangingRooms;
   #roomHasChanged;
   
+  #audioContext;
   #masterBgmVolume;
   #masterSfxVolume;
   #masterBgmPitch;
+  #soundBuffer;
   
   #COLLIDER_SHAPES;
   #loadingQueue;
@@ -233,6 +235,7 @@ export class MintCrate {
     this.#masterBgmVolume = 1;
     this.#masterSfxVolume = 1;
     this.#masterBgmPitch  = 1;
+    this.#soundBuffer = [];
     
     // Game data
     this.#COLLIDER_SHAPES = {NONE: 0, RECTANGLE: 1, CIRCLE: 2};
@@ -492,6 +495,7 @@ export class MintCrate {
       let promise =
         this.#loadImage(`${this.#RES_PATHS.backdrops}/${item.name}.png`)
         .then((img) => this.#loadIndividualBackdrop(item, img));
+      
       promises.push(promise);
     }
     
@@ -536,7 +540,56 @@ export class MintCrate {
       if (this.#initFailed(results))
         return;
       
-      // this.#loadSounds();
+      this.#loadSounds();
+    });
+  }
+  
+  #loadSounds() {
+    console.log('Loading Sound Effects');
+    this.#displayLoadingScreen('Loading Sound Effects');
+    
+    this.#audioContext = new AudioContext();
+    
+    let promises = [];
+    for (const item of this.#loadingQueue.sounds ?? []) {
+      let promise =
+        fetch(`${this.#RES_PATHS.sounds}/${item.name}.ogg`)
+        .then((response) => response.arrayBuffer())
+        .then((arrayBuffer) => this.#audioContext.decodeAudioData(arrayBuffer))
+        .then((audioBuffer) => this.#data.sounds[item.name] = audioBuffer);
+      
+      promises.push(promise);
+    }
+    
+    // Proceed when loading is done
+    Promise.allSettled(promises).then((results) => {
+      if (this.#initFailed(results))
+        return;
+      
+      this.#loadMusic();
+    });
+  }
+  
+  #loadMusic() {
+    console.log('Loading Music');
+    this.#displayLoadingScreen('Loading Music');
+    
+    let promises = [];
+    for (const item of this.#loadingQueue.music ?? []) {
+      let promise =
+        fetch(`${this.#RES_PATHS.music}/${item.name}.ogg`)
+        .then((response) => response.arrayBuffer())
+        .then((arrayBuffer) => this.#audioContext.decodeAudioData(arrayBuffer))
+        .then((audioBuffer) => this.#data.music[item.name] = audioBuffer);
+      
+      promises.push(promise);
+    }
+    
+    // Proceed when loading is done
+    Promise.allSettled(promises).then((results) => {
+      if (this.#initFailed(results))
+        return;
+      
       this.#initDone();
     });
   }
@@ -1128,8 +1181,60 @@ export class MintCrate {
   // Audio
   // ---------------------------------------------------------------------------
   
-  stopAllSounds() {
+  #destroySoundSource(sound) {
+    sound.gainNode.gain.value = 0;
+    sound.gainNode.disconnect();
+    sound.source.disconnect();
+    sound.source.removeEventListener('ended', sound.endCallback);
     
+    this.#soundBuffer.splice(
+      this.#soundBuffer.findIndex((item) => item === sound), 1
+    );
+  }
+  
+  playSound(soundName, options = {}) {
+    options.volume = options.volume ?? 1;
+    options.pitch = options.pitch ?? 1;
+    
+    let sound = {};
+    
+    // Retrieve sound data
+    let source = this.#audioContext.createBufferSource();
+    source.buffer = this.#data.sounds[soundName];
+    
+    // Set pitch
+    source.playbackRate.value = options.pitch;
+    
+    // Set looping properties
+    // source.loop
+    
+    // Set volume
+    const gainNode = this.#audioContext.createGain();
+    gainNode.gain.value = options.volume;
+    
+    // Store for later
+    sound.source = source;
+    sound.gainNode = gainNode;
+    sound.endCallback = () => { this.#destroySoundSource(sound); };
+    
+    // Set up callback to destroy sound when it's done playing
+    source.addEventListener('ended', sound.endCallback);
+    
+    // Play sound and store it for the duration it's playing
+    source.connect(gainNode);
+    gainNode.connect(this.#audioContext.destination);
+    
+    source.start();
+    
+    this.#soundBuffer.push(sound);
+  }
+  
+  stopAllSounds() {
+    // Stop all playing sounds
+    for (let i = this.#soundBuffer.length - 1; i >= 0; i--) {
+      let sound = this.#soundBuffer[i];
+      this.#destroySoundSource(this.#soundBuffer[i]);
+    }
   }
   
   stopMusic() {
