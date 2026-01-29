@@ -1235,29 +1235,80 @@ export class MintCrate {
   
   // https://github.com/WebAudio/web-audio-api-v2/issues/105
   playMusic(trackName, fadeLength = 0) {
-    // Immediately stop/start music if no fade was specified
+    this.#data.music[trackName].source.play(1, 1);
+    this.#currentMusicTrackName = trackName;
+    return;
+    
+    /*
+      01. No track is playing at all
+        -> Play the new track
+      02. Another track is currently playing
+        -> Stop the other track (w/ fade)
+        -> Play the new track
+      03. The track-to-be-played is already playing
+        -> Stop the current track (no fade)
+        -> Play the new track
+      04. The track-to-be-played was playing and is currently paused
+        -> Stop the current track (no fade)
+        -> Play the new track
+    */
+    
+    // State 01
+    if (!this.#musicTrackIsLoaded()) {
+      this.#playNewMusicTrack(trackName, fadeLength);
+    
+    // State 02
+    } else if (this.#currentMusicTrackName !== trackName) {
+      this.#stopCurrentMusicTrack(fadeLength);
+      this.#playNewMusicTrack(trackName, fadeLength);
+    
+    // State 03 & State 04
+    } else {
+      this.#stopCurrentMusicTrack(0);
+      this.#playNewMusicTrack(trackName, fadeLength);
+    }
+    
+    // Store the music track name
+    this.#currentMusicTrackName = trackName;
+  }
+  
+  stopMusic(fadeLength = 0) {
+    console.log(this.#currentMusicTrackName);
+    console.log(this.#data.music[this.#currentMusicTrackName]);
+    if (this.#data.music[this.#currentMusicTrackName])
+      this.#data.music[this.#currentMusicTrackName].source.stop();
+    return;
+    
+    if (this.#musicTrackIsLoaded()) {
+      let currentTrack = this.#data.music[this.#currentMusicTrackName];
+      this.#stopCurrentMusicTrack(fadeLength);
+    }
+  }
+  
+  pauseMusic(fadeLength = 0) {
+    if (this.#data.music[this.#currentMusicTrackName])
+      this.#data.music[this.#currentMusicTrackName].source.pause();
+    return;
+    
+    let currentTrack = this.#data.music[this.#currentMusicTrackName];
+    currentTrack.source.pause();
+  }
+  
+  resumeMusic(fadeLength = 0) {
+    if (this.#data.music[this.#currentMusicTrackName])
+      this.#data.music[this.#currentMusicTrackName].source.resume(1, 1);
+    return;
+    
+    this.#playNewMusicTrack(this.#currentMusicTrackName, fadeLength);
+  }
+  
+  #playNewMusicTrack(trackName, fadeLength) {
+    let affectingFadeValue = (fadeLength > 0) ? (1 / fadeLength) : 0;
+    
     if (fadeLength === 0) {
-      if (this.#musicTrackIsLoaded()) {
-        let currentTrack = this.#data.music[this.#currentMusicTrackName];
-        currentTrack.source.stop();
-      }
-      
       let newTrack = this.#data.music[trackName];
       newTrack.source.play();
-    }
-    // Otherwise, set up the tracks to be faded in the update loop
-    else {
-      let affectingFadeValue = (fadeLength > 0) ? (1 / fadeLength) : 0;
-      
-      // Stop currently-playing track (if it is)
-      if (this.#musicTrackIsLoaded()) {
-        let currentTrack = this.#data.music[this.#currentMusicTrackName];
-        
-        currentTrack.fade.type            = this.#MUSIC_FADE_TYPES.OUT;
-        currentTrack.fade.remainingFrames = fadeLength;
-        currentTrack.fade.affectingValue  = affectingFadeValue;
-      }
-      
+    } else {
       // Play new track
       let newTrack = this.#data.music[trackName];
       
@@ -1268,27 +1319,21 @@ export class MintCrate {
       
       newTrack.source.play();
     }
-    
-    
-    // Store current music track name
-    this.#currentMusicTrackName = trackName;
   }
   
-  stopMusic(fadeLength = 0) {
-    if (this.#musicTrackIsLoaded()) {
+  #stopCurrentMusicTrack(fadeLength) {
+    let affectingFadeValue = (fadeLength > 0) ? (1 / fadeLength) : 0;
+    
+    if (fadeLength === 0) {
+      let currentTrack = this.#data.music[this.#currentMusicTrackName];
+      currentTrack.source.stop();
+      this.#currentMusicTrackName = "";
+    } else {
       let currentTrack = this.#data.music[this.#currentMusicTrackName];
       
-      // Immediately stop music if no fade was specified
-      if (fadeLength === 0) {
-        currentTrack.source.stop();
-      // Otherwise, set up the track to be faded in the update loop
-      } else {
-        let affectingFadeValue = (fadeLength > 0) ? (1 / fadeLength) : 0;
-        
-        currentTrack.fade.type            = this.#MUSIC_FADE_TYPES.OUT;
-        currentTrack.fade.remainingFrames = fadeLength;
-        currentTrack.fade.affectingValue  = affectingFadeValue;
-      }
+      currentTrack.fade.type            = this.#MUSIC_FADE_TYPES.OUT;
+      currentTrack.fade.remainingFrames = fadeLength;
+      currentTrack.fade.affectingValue  = affectingFadeValue;
     }
   }
   
@@ -1385,10 +1430,15 @@ export class MintCrate {
     for (const trackName in this.#data.music) {
       let track = this.#data.music[trackName];
       
+      if (track.source.isPaused()) {
+        continue;
+      }
+      
       // Handle fade-ins
       if (track.fade.remainingFrames > 0) {
         // Tick fade counter
         track.fade.remainingFrames--;
+        // console.log(track.fade.remainingFrames);
         
         // Handle fade-ins
         if (track.fade.type === this.#MUSIC_FADE_TYPES.IN) {
@@ -1412,6 +1462,7 @@ export class MintCrate {
             track.source.setVolume(track.relativeVolume * this.#masterVolume.bgm);
           } else {
             track.source.stop();
+            this.#currentMusicTrackName = "";
           }
         }
       }

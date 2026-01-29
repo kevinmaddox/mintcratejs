@@ -13,6 +13,14 @@ export class Sound {
   // Member variables
   //----------------------------------------------------------------------------
   
+  static PLAYBACK_STATES = {
+    STOPPED: 0,
+    PAUSED : 1,
+    PLAYING: 2
+  };
+  
+  #state;
+  
   #audioContext;
   #audioBuffer;
   
@@ -20,7 +28,8 @@ export class Sound {
   #gainNode;
   #endCallback;
   
-  #currentPlaybackTime;
+  #totalTimeElapsed;
+  #startedTimestamp;
   
   //----------------------------------------------------------------------------
   // Constructor
@@ -30,12 +39,54 @@ export class Sound {
     this.#audioContext = audioContext;
     this.#audioBuffer = audioBuffer;
     
-    this.#currentPlaybackTime = 0;
+    this.#totalTimeElapsed = 0;
+    this.#startedTimestamp = 0;
   }
   
   play(volume = 1, pitch = 1) {
-    // Stop audio in case it's already playing
-    this.stop();
+    this.#totalTimeElapsed = 0;
+    
+    this.#play(volume, pitch, 0);
+    
+    this.#state = Sound.PLAYBACK_STATES.PLAYING;
+  }
+  
+  stop() {
+    this.#cleanUp();
+    
+    this.#state = Sound.PLAYBACK_STATES.STOPPED;
+  }
+  
+  pause() {
+    if (
+      this.#state === Sound.PLAYBACK_STATES.PAUSED
+      || this.#state === Sound.PLAYBACK_STATES.STOPPED
+    ) {
+      return;
+    }
+    
+    
+    let timeElapsed = this.#audioContext.currentTime - this.#startedTimestamp;
+    this.#totalTimeElapsed += timeElapsed;
+    
+    this.#cleanUp();
+    
+    this.#state = Sound.PLAYBACK_STATES.PAUSED;
+  }
+  
+  resume(volume = 1, pitch = 1) {
+    if (this.#state !== Sound.PLAYBACK_STATES.PAUSED) {
+      return;
+    }
+    
+    this.#play(volume, pitch, this.#totalTimeElapsed);
+    
+    this.#state = Sound.PLAYBACK_STATES.PLAYING;
+  }
+  
+  #play(volume, pitch, startOffset) {
+    // Stop and clean up old audio data in case it's already playing
+    this.#cleanUp();
     
     // Create new source node for playing the audio
     this.#sourceNode = this.#audioContext.createBufferSource();
@@ -59,19 +110,14 @@ export class Sound {
     // Play sound
     this.#sourceNode.connect(this.#gainNode);
     this.#gainNode.connect(this.#audioContext.destination);
-    this.#sourceNode.start();
-  }
-  
-  stop() {
-    this.#cleanUp();
-  }
-  
-  pause() {
+    this.#sourceNode.start(0, startOffset);
     
+    // Store timestamp at which point this sound started playing
+    this.#startedTimestamp = this.#audioContext.currentTime;
   }
   
-  resume() {
-    
+  isPaused() {
+    return (this.#state === Sound.PLAYBACK_STATES.PAUSED);
   }
   
   setVolume(volume) {
@@ -92,10 +138,6 @@ export class Sound {
     }
   }
   
-  update() {
-    
-  }
-  
   #cleanUp() {
     if (this.#sourceNode) {
       this.#sourceNode.stop();
@@ -108,6 +150,7 @@ export class Sound {
       this.#gainNode.disconnect();
     }
     
+    this.#state = Sound.PLAYBACK_STATES.STOPPED;
   }
   
 }
