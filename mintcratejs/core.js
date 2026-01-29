@@ -88,10 +88,10 @@ export class MintCrate {
   #roomHasChanged;
   
   #audioContext;
-  #masterBgmVolume;
-  #masterSfxVolume;
+  #MUSIC_FADE_TYPES;
+  #masterVolume;
   #masterBgmPitch;
-  #soundBuffer;
+  #currentMusicTrackName;
   
   #COLLIDER_SHAPES;
   #loadingQueue;
@@ -233,10 +233,13 @@ export class MintCrate {
     this.#roomHasChanged = false;
     
     // Music/SFX global volume levels
-    this.#masterBgmVolume = 1;
-    this.#masterSfxVolume = 1;
+    this.#MUSIC_FADE_TYPES = {IN: 0, OUT: 1};
+    this.#masterVolume = {
+      bgm: 1,
+      sfx: 1
+    };
     this.#masterBgmPitch  = 1;
-    this.#soundBuffer = [];
+    this.#currentMusicTrackName = "";
     
     // Game data
     this.#COLLIDER_SHAPES = {NONE: 0, RECTANGLE: 1, CIRCLE: 2};
@@ -549,6 +552,9 @@ export class MintCrate {
     console.log('Loading Sound Effects');
     this.#displayLoadingScreen('Loading Sound Effects');
     
+    // The audio context is created here, and not in the constructor, as the
+    // game should have user input by this point and the context won't be
+    // blocked from being instantiated by the browser
     this.#audioContext = new AudioContext();
     
     let promises = [];
@@ -559,7 +565,12 @@ export class MintCrate {
         fetch(`${this.#RES_PATHS.sounds}/${item.name}.ogg`)
         .then((response) => response.arrayBuffer())
         .then((arrayBuffer) => this.#audioContext.decodeAudioData(arrayBuffer))
-        .then((audioBuffer) => this.#loadAudioFile(item, audioBuffer));
+        .then((audioBuffer) => {
+          this.#data.sounds[item.name] = {
+            source: new Sound(this.#audioContext, audioBuffer),
+            relativeVolume: 1
+          };
+        });
         // .then((audioBuffer) => this.#data.sounds[item.name] = audioBuffer);
       
       promises.push(promise);
@@ -584,7 +595,18 @@ export class MintCrate {
         fetch(`${this.#RES_PATHS.music}/${item.name}.ogg`)
         .then((response) => response.arrayBuffer())
         .then((arrayBuffer) => this.#audioContext.decodeAudioData(arrayBuffer))
-        .then((audioBuffer) => this.#data.music[item.name] = audioBuffer);
+        .then((audioBuffer) => {
+          this.#data.music[item.name] = {
+            source: new Sound(this.#audioContext, audioBuffer),
+            relativeVolume: 0,
+            fade: {
+              type: this.#MUSIC_FADE_TYPES.IN,
+              remainingFrames: 0,
+              affectingValue: 0
+            }
+          };
+        });
+        // .then((audioBuffer) => this.#data.music[item.name] = audioBuffer);
       
       promises.push(promise);
     }
@@ -596,13 +618,6 @@ export class MintCrate {
       
       this.#initDone();
     });
-  }
-  
-  #loadAudioFile(item, audioBuffer) {
-    this.#data.sounds[item.name] = {
-      source: new Sound(this.#audioContext, audioBuffer),
-      localVolume: 1
-    };
   }
   
   #loadIndividualBackdrop(item, img) {
@@ -1155,9 +1170,12 @@ export class MintCrate {
   //----------------------------------------------------------------------------
   
   #keyHandler(e) {
+    // TODO: Make it so you can't use shift/ctrl/alt or the F keys
     if (
       (!this.#gameHasFocus() && !this.#devMode)
-      || (e.ctrlKey && (e.key === 'r' || e.key === 'R'))
+      || (e.ctrlKey && e.key.toLowerCase() === 'r')
+      || e.key === 'F12'
+      || (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'i')
     ) {
       return;
     }
@@ -1192,17 +1210,6 @@ export class MintCrate {
   // Audio
   // ---------------------------------------------------------------------------
   
-  #destroySoundSource(sound) {
-    sound.gainNode.gain.value = 0;
-    sound.gainNode.disconnect();
-    sound.source.disconnect();
-    sound.source.removeEventListener('ended', sound.endCallback);
-    
-    this.#soundBuffer.splice(
-      this.#soundBuffer.findIndex((item) => item === sound), 1
-    );
-  }
-  
   playSound(soundName, options = {}) {
     // Default params
     options.volume = options.volume ?? 1;
@@ -1211,34 +1218,82 @@ export class MintCrate {
     // Get sound data
     let sound = this.#data.sounds[soundName];
     
-    // Set volume
-    sound.localVolume = options.volume;
-    sound.source.setVolume(options.volume * this.#masterSfxVolume);
-    
-    // Set pitch
-    sound.source.setPitch(options.pitch);
+    // Store relative volume
+    sound.relativeVolume = options.volume;
     
     // Play sound
-    sound.source.play();
-  }
-  
-  // https://github.com/WebAudio/web-audio-api-v2/issues/105
-  playMusic(trackName, fadeLength = 0) {
-    //Get currently-playing and to-be-switch-to music tracks
-    // let oldTrack = this.#data.music[this.#currentMusic]
-    // let newTrack = this.#data.music[trackName]
+    sound.source.play(options.volume, options.pitch);
   }
   
   stopAllSounds() {
     // Stop all playing sounds
-    for (let i = this.#soundBuffer.length - 1; i >= 0; i--) {
-      let sound = this.#soundBuffer[i];
-      this.#destroySoundSource(this.#soundBuffer[i]);
+    for (const soundName in this.#data.sounds) {
+      let sound = this.#data.sounds[soundName];
+      sound.source.stop();
     }
   }
   
-  stopMusic() {
+  // https://github.com/WebAudio/web-audio-api-v2/issues/105
+  playMusic(trackName, fadeLength = 0) {
+    // Immediately stop/start music if no fade was specified
+    if (fadeLength === 0) {
+      if (this.#musicTrackIsLoaded()) {
+        let currentTrack = this.#data.music[this.#currentMusicTrackName];
+        currentTrack.source.stop();
+      }
+      
+      let newTrack = this.#data.music[trackName];
+      newTrack.source.play();
+    }
+    // Otherwise, set up the tracks to be faded in the update loop
+    else {
+      let affectingFadeValue = (fadeLength > 0) ? (1 / fadeLength) : 0;
+      
+      // Stop currently-playing track (if it is)
+      if (this.#musicTrackIsLoaded()) {
+        let currentTrack = this.#data.music[this.#currentMusicTrackName];
+        
+        currentTrack.fade.type            = this.#MUSIC_FADE_TYPES.OUT;
+        currentTrack.fade.remainingFrames = fadeLength;
+        currentTrack.fade.affectingValue  = affectingFadeValue;
+      }
+      
+      // Play new track
+      let newTrack = this.#data.music[trackName];
+      
+      newTrack.relativeVolume = 0;
+      newTrack.fade.type            = this.#MUSIC_FADE_TYPES.IN;
+      newTrack.fade.remainingFrames = fadeLength;
+      newTrack.fade.affectingValue  = affectingFadeValue;
+      
+      newTrack.source.play();
+    }
     
+    
+    // Store current music track name
+    this.#currentMusicTrackName = trackName;
+  }
+  
+  stopMusic(fadeLength = 0) {
+    if (this.#musicTrackIsLoaded()) {
+      let currentTrack = this.#data.music[this.#currentMusicTrackName];
+      
+      // Immediately stop music if no fade was specified
+      if (fadeLength === 0) {
+        currentTrack.source.stop();
+      // Otherwise, set up the track to be faded in the update loop
+      } else {
+        let affectingFadeValue = (fadeLength > 0) ? (1 / fadeLength) : 0;
+        
+        currentTrack.fade.type            = this.#MUSIC_FADE_TYPES.OUT;
+        currentTrack.fade.remainingFrames = fadeLength;
+        currentTrack.fade.affectingValue  = affectingFadeValue;
+      }
+    }
+  }
+  
+  #musicTrackIsLoaded() {
+    return (this.#currentMusicTrackName !== "");
   }
   
   // ---------------------------------------------------------------------------
@@ -1324,6 +1379,42 @@ export class MintCrate {
     // Update inputs
     for (const inputHandler of this.#inputHandlers) {
       inputHandler._update(this.#keyStates);
+    }
+    
+    // Handle music looping(?) and fading
+    for (const trackName in this.#data.music) {
+      let track = this.#data.music[trackName];
+      
+      // Handle fade-ins
+      if (track.fade.remainingFrames > 0) {
+        // Tick fade counter
+        track.fade.remainingFrames--;
+        
+        // Handle fade-ins
+        if (track.fade.type === this.#MUSIC_FADE_TYPES.IN) {
+          // Calculate new volume
+          if (track.fade.remainingFrames > 0) {
+            track.relativeVolume += track.fade.affectingValue;
+            track.relativeVolume  = Math.min(1, track.relativeVolume);
+          } else {
+            track.relativeVolume = 1;
+          }
+          
+          // Set volume
+          track.source.setVolume(track.relativeVolume * this.#masterVolume.bgm);
+          
+        // Handle fade-outs
+        } else if (track.fade.type === this.#MUSIC_FADE_TYPES.OUT) {
+          // Calculate and set new volume
+          if (track.fade.remainingFrames > 0) {
+            track.relativeVolume -= track.fade.affectingValue;
+            track.relativeVolume  = Math.max(0, track.relativeVolume);
+            track.source.setVolume(track.relativeVolume * this.#masterVolume.bgm);
+          } else {
+            track.source.stop();
+          }
+        }
+      }
     }
     
     // Handle delayed/repeated functions

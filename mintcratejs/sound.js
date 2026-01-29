@@ -21,8 +21,6 @@ export class Sound {
   #endCallback;
   
   #currentPlaybackTime;
-  #pitch;
-  #volume;
   
   //----------------------------------------------------------------------------
   // Constructor
@@ -33,11 +31,9 @@ export class Sound {
     this.#audioBuffer = audioBuffer;
     
     this.#currentPlaybackTime = 0;
-    this.#pitch = 1;
-    this.#volume = 1;
   }
   
-  play() {
+  play(volume = 1, pitch = 1) {
     // Stop audio in case it's already playing
     this.stop();
     
@@ -45,16 +41,16 @@ export class Sound {
     this.#sourceNode = this.#audioContext.createBufferSource();
     this.#sourceNode.buffer = this.#audioBuffer;
     
-    // Set pitch
-    this.#sourceNode.playbackRate.value = this.#pitch;
-    
-    // Set looping properties
-    // this.#sourceNode.loop
-    
     // Set volume
     this.#gainNode = this.#audioContext.createGain();
-    this.#gainNode.gain.value = this.#volume;
+    this.setVolume(volume);
     
+    // Set pitch
+    this.setPitch(pitch);
+    
+    // Set looping properties
+    // TODO: This
+    // this.#sourceNode.loop
     
     // Set up callback to destroy sound when it's done playing
     this.#endCallback = () => { this.#cleanUp(); };
@@ -80,12 +76,24 @@ export class Sound {
   
   setVolume(volume) {
     // TODO: Test these values
-    this.#volume = MintMath.clamp(volume, 0, 1);
+    volume = MintMath.clamp(volume, 0, 1);
+    
+    if (this.#gainNode) {
+      this.#gainNode.gain.value = volume;
+    }
   }
   
   setPitch(pitch) {
     // TODO: Test these values
-    this.#pitch = MintMath.clamp(pitch, 0.1, 30);;
+    pitch = MintMath.clamp(pitch, 0.1, 30);
+    
+    if (this.#sourceNode) {
+      this.#sourceNode.playbackRate.value = pitch;
+    }
+  }
+  
+  update() {
+    
   }
   
   #cleanUp() {
