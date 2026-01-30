@@ -1295,18 +1295,37 @@ export class MintCrate {
   
   stopMusic(fadeLength = 0) {
     if (this.#musicTrackIsLoaded()) {
-      this.#stopMusicPlayback(this.#currentMusicTrackName, fadeLength);
-      this.#currentMusicTrackName = "";
+      let track = this.#data.music[this.#currentMusicTrackName];
+      
+      if (
+        track.state !== this.#MUSIC_STATES.STOPPING
+        && track.state !== this.#MUSIC_STATES.STOPPED
+      ) {
+        console.log('stop 1!');
+        this.#stopMusicPlayback(this.#currentMusicTrackName, fadeLength);
+        
+      } else if (
+        track.state === this.#MUSIC_STATES.STOPPING
+        && fadeLength === 0
+      ) {
+        console.log('stop 2!');
+        this.#stopMusicPlayback(this.#currentMusicTrackName, fadeLength);
+        this.#currentMusicTrackName = "";
+      }
     }
   }
   
   pauseMusic(fadeLength = 0) {
-    let track = this.#data.music[this.#currentMusicTrackName];
-    
     if (this.#musicTrackIsLoaded()) {
+      let track = this.#data.music[this.#currentMusicTrackName];
+      
       if (
-        track.state !== this.#MUSIC_STATES.PAUSING
-        || track.state !== this.#MUSIC_STATES.PAUSED
+        track.state === this.#MUSIC_STATES.PLAYING
+        ||
+        (
+          track.state === this.#MUSIC_STATES.PAUSING
+          && fadeLength === 0
+        )
       ) {
         this.#stopMusicPlayback(this.#currentMusicTrackName, fadeLength, true);
       }
@@ -1321,6 +1340,7 @@ export class MintCrate {
         track.state === this.#MUSIC_STATES.PAUSING
         || track.state === this.#MUSIC_STATES.PAUSED
       ) {
+        console.log('resume!');
         this.#startMusicPlayback(this.#currentMusicTrackName, fadeLength, true);
       }
     }
@@ -1332,25 +1352,29 @@ export class MintCrate {
     let track = this.#data.music[trackName];
     
     if (fadeLength === 0) {
+      console.log('a');
       track.fade.remainingFrames = 0;
       track.relativeVolume = 1;
       
       if (isResuming) {
-        track.source.resume(this.#masterVolume.bgm, this.#masterBgmPitch, track.loop);
+        track.source.resume(track.relativeVolume * this.#masterVolume.bgm, this.#masterBgmPitch, track.loop);
+        track.source.setVolume(track.relativeVolume * this.#masterVolume.bgm);
       } else {
-        track.source.play(this.#masterVolume.bgm, this.#masterBgmPitch, track.loop);
+        track.source.play(track.relativeVolume * this.#masterVolume.bgm, this.#masterBgmPitch, track.loop);
       }
     } else {
       if (!isResuming) {
-        track.relativeVolume       = 0;
+        track.relativeVolume = 0;
       }
       track.fade.type            = this.#MUSIC_FADE_TYPES.IN;
       track.fade.remainingFrames = fadeLength;
       track.fade.affectingValue  = affectingFadeValue;
       
       if (isResuming) {
+        console.log('1');
         track.source.resume(0, this.#masterBgmPitch, track.loop);
       } else {
+        console.log('2');
         track.source.play(0, this.#masterBgmPitch, track.loop);
       }
     }
@@ -1365,6 +1389,7 @@ export class MintCrate {
     
     if (fadeLength === 0) {
       track.fade.remainingFrames = 0;
+      track.relativeVolume = 0;
       
       if (isPausing) {
         track.state = this.#MUSIC_STATES.PAUSED;
