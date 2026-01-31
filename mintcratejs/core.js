@@ -1399,11 +1399,121 @@ export class MintCrate {
   }
   
   #testCollision(colliderA, colliderB) {
+    // Don't test for collision if one or more colliders haven't been defined
+    if (
+         colliderA.s === this.#COLLIDER_SHAPES.NONE
+      || colliderB.s === this.#COLLIDER_SHAPES.NONE
+    ) {
+      return false;
+    }
     
+    // Prepare data for checking collisions
+    let collision = false;
+    
+    // Collision test: both colliders are rectangles
+    if (
+         colliderA.s === this.#COLLIDER_SHAPES.RECTANGLE
+      && colliderB.s === this.#COLLIDER_SHAPES.RECTANGLE
+    ) {
+      if (
+        colliderA.x < (colliderB.x + colliderB.w)
+        && (colliderA.x + colliderA.w) > colliderB.x
+        && colliderA.y < (colliderB.y + colliderB.h)
+        && (colliderA.y + colliderA.h) > colliderB.y
+      ) {
+        collision = true;
+      }
+    
+    // Collision test: both colliders are circles
+    } else if (
+         colliderA.s === this.#COLLIDER_SHAPES.CIRCLE
+      && colliderB.s === this.#COLLIDER_SHAPES.CIRCLE
+    ) {
+      let dx  = colliderA.x - colliderB.x;
+      let dy  = colliderA.y - colliderB.y;
+      collision = (Math.sqrt(dx * dx + dy * dy) < (colliderA.r + colliderB.r));
+    
+    // Collision test: one collider is a rectangle and the other is a circle
+    } else {
+      // Make things consistent: collider A should always be rectangular, and
+      // collider B should always be circular, so flip them around if necessary
+      if (colliderA.s == this.#COLLIDER_SHAPES.CIRCLE) {
+        [colliderA, colliderB] = [colliderB, colliderA];
+      }
+      
+      // Prepare to test for intersection
+      let rect   = colliderA;
+      let circle = colliderB;
+      
+      let testX = circle.x;
+      let testY = circle.y;
+      
+      // Find closest edge
+      if (circle.x < rect.x) {
+        testX = rect.x;
+      } else if (circle.x > (rect.x + rect.w)) {
+        testX = rect.x + rect.w;
+      }
+      
+      if (circle.y < rect.y) {
+        testY = rect.y;
+      } else if (circle.y > (rect.y + rect.h)) {
+        testY = rect.y + rect.h;
+      }
+      
+      // Calculate distances based on closest edges
+      let distX    = circle.x - testX;
+      let distY    = circle.y - testY;
+      let distance = Math.sqrt((distX * distX) + (distY * distY));
+      
+      // Check for collision
+      collision = (distance <= circle.r);
+    }
+    
+    // If a collision occurred, mark flag in both colliders
+    if (collision) {
+      colliderA.collision = true;
+      colliderB.collision = true;
+    }
+    
+    // Return result of collision test
+    return collision;
   }
   
   mouseOverActive(active) {
+    // Prepare to perform check
+    let collider = active._getCollider();
+    let mouseX   = this.#mousePositions.globalX;
+    let mouseY   = this.#mousePositions.globalY;
+    let over     = false;
     
+    // Don't test for collision if collider hasn't been defined
+    if (collider.s === this.#COLLIDER_SHAPES.NONE) {
+      return false;
+    }
+    
+    // Hover check: collider is a rectangle
+    if (collider.s === this.#COLLIDER_SHAPES.RECTANGLE) {
+      over = (
+           mouseX >= collider.x
+        && mouseY >= collider.y
+        && mouseX < (collider.x + collider.w)
+        && mouseY < (collider.y + collider.h)
+      );
+    
+    // Hover check: collider is a circle
+    } else {
+      let dx = mouseX - collider.x;
+      let dy = mouseY - collider.y;
+      let d  = Math.sqrt((dx * dx) + (dy * dy));
+      over   = (d <= collider.r);
+    }
+    
+    // If mouse is hovering over active, then mark flag in collider
+    collider.mouseOver = over;
+    
+    // Return result of hover test
+    return over;
   }
   
   // ---------------------------------------------------------------------------
