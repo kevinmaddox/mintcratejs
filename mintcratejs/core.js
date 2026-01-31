@@ -195,9 +195,9 @@ export class MintCrate {
       {pressed : false, held : false, released : false}
     ];
     
-    // canvas.addEventListener('mousedown', (e) => Inu.#mouseButtonHandler(e), false);
-    // canvas.addEventListener('mouseup',   (e) => Inu.#mouseButtonHandler(e), false);
-    // canvas.addEventListener('mousemove', (e) => Inu.#mouseMoveHandler(e), false);
+    document.addEventListener('mousedown', (e) => this.#mouseButtonHandler(e), false);
+    document.addEventListener('mouseup',   (e) => this.#mouseButtonHandler(e), false);
+    document.addEventListener('mousemove', (e) => this.#mouseMoveHandler(e),   false);
     
     // Camera
     this.#camera        = {x : 0, y : 0};
@@ -1518,7 +1518,46 @@ export class MintCrate {
   // Mouse input
   // ---------------------------------------------------------------------------
   
-  // TODO: This
+  getMouseX() {
+    return this.#mousePositions.globalX;
+  }
+  
+  getMouseY() {
+    return this.#mousePositions.globalY;
+  }
+  
+  getWindowMouseX() {
+    return this.#mousePositions.localX;
+  }
+  
+  getWindowMouseY() {
+    return this.#mousePositions.localY;
+  }
+  
+  mousePressed(mouseButton) {
+    return this.#mouseButtons[mouseButton].pressed;
+  }
+  
+  mouseReleased(mouseButton) {
+    return this.#mouseButtons[mouseButton].released;
+  }
+  
+  mouseHeld(mouseButton) {
+    return this.#mouseButtons[mouseButton].held;
+  }
+  
+  #mouseButtonHandler(e) {
+    this.#mouseStates[e.button] = (e.type === 'mousedown');
+  }
+  
+  #mouseMoveHandler(e) {
+    let rect = this.#frontCanvas.getBoundingClientRect();
+    let x    = e.clientX - rect.left;
+    let y    = e.clientY - rect.top;
+    
+    this.#mousePositions.localX = Math.floor(x / this.#SCREEN_SCALE);
+    this.#mousePositions.localY = Math.floor(y / this.#SCREEN_SCALE);
+  }
   
   //----------------------------------------------------------------------------
   // Keyboard input
@@ -1894,6 +1933,38 @@ export class MintCrate {
     // Update inputs
     for (const inputHandler of this.#inputHandlers) {
       inputHandler._update(this.#keyStates);
+    }
+    
+    // Update global mouse positions
+    this.#mousePositions.globalX = this.#mousePositions.localX + this.#camera.x;
+    this.#mousePositions.globalY = this.#mousePositions.localY + this.#camera.y;
+    
+    // Update mouse buttons states
+    for (const btnNumber in this.#mouseButtons) {
+      let btn = this.#mouseButtons[btnNumber];
+      
+      // Reset states
+      btn.pressed = false;
+      btn.released = false;
+      
+      // Get raw mouse state
+      let down = false;
+      if (this.#mouseStates[btnNumber]) { down = true; }
+      
+      // Handle setting held/pressed/released states
+      if (down) {
+        if (!btn.held) {
+          btn.pressed = true;
+        }
+        
+        btn.held = true;
+      } else {
+        if (btn.held) {
+          btn.released = true;
+        }
+        
+        btn.held = false;
+      }
     }
     
     // Clear out loaded music track name if it's come to its natural end

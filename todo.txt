@@ -8,8 +8,9 @@
 [x] Ensure that the 1-pixel sprite flip offset from Love2D doesn't happen here
 [x] Verify that origin point and collider are being drawn at the right positions
 [x] Collisions
-[ ] Mouse input
+[x] Mouse input
 [ ] Test Active.angleLookAtPoint()
+[ ] Test scaling
 [ ] Background 9-patches
 [ ] Look through and take care of TODOs
 
