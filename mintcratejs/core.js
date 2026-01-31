@@ -559,8 +559,10 @@ export class MintCrate {
           let activeName = nameParts[0];
           
           // Figure out collider's shape
-          let shape = this.#COLLIDER_SHAPES.RECTANGLE;
-          if (item.radius !== 0) {
+          let shape = this.#COLLIDER_SHAPES.NONE;
+          if (item.width !== 0 && item.height !== ) {
+            shape = this.#COLLIDER_SHAPES.RECTANGLE;
+          } else if (item.radius !== 0) {
             shape = this.#COLLIDER_SHAPES.CIRCLE;
           }
           
@@ -1360,7 +1362,49 @@ export class MintCrate {
   // Collision testing
   // ---------------------------------------------------------------------------
   
-  // TODO: This
+  testActiveCollision(activeA, activeB) {
+    return this.#testCollision(activeA.getCollider(), activeB.getCollider());
+  }
+  
+  testMapCollision(active, tileType) {
+    // Test active against all tilemap collision masks
+    let collisions = [];
+    
+    if (this.#tilemapIsSet) {
+      // Get all collision masks
+      let mapColliders = this:#getTilemapCollisionMasks()[tileType];
+      
+      for (const collider of mapColliders) {
+        // See if active is intersecting with collision mask
+        if (this:#testCollision(active._getCollider(), collider)) {
+          // Store data regarding the collision
+          collisions.push({
+            leftEdgeX   : collider.x,
+            rightEdgeX  : collider.x + collider.w,
+            topEdgeY    : collider.y,
+            bottomEdgeY : collider.y + collider.h
+          });
+        }
+      }
+    }
+    
+    // Return false if no collisions took place
+    if (collisions.length === 0) {
+      return false;
+    
+    // Otherwise, return collisions
+    } else {
+      return collisions;
+    }
+  }
+  
+  #testCollision(colliderA, colliderB) {
+    
+  }
+  
+  mouseOverActive(active) {
+    
+  }
   
   // ---------------------------------------------------------------------------
   // Mouse input
@@ -1950,8 +1994,11 @@ export class MintCrate {
     
     // Draw debug graphics for tilemap
     if (
-      (this.#showTilemapCollisionMasks || this.#showTilemapBehaviorValues) &&
-      this.#tilemapIsSet
+      (
+        this.#showTilemapCollisionMasks
+        || this.#showTilemapBehaviorValues
+      )
+      && this.#tilemapIsSet
     ) {
       // Set border color
       this.#backContext.strokeStyle = 'rgb(0 0 255 / 50%)';
@@ -1994,6 +2041,105 @@ export class MintCrate {
               // 3, 0, false
             );
           }
+        }
+      }
+    }
+    
+    // Draw debug graphics for Actives
+    if (
+      this.#showActiveCollisionMasks
+      || this.#showActiveInfo
+      || this.#showActiveOriginPoints
+      || this.#showActiveActionPoints
+    ) {
+      for (const active of this.#linearInstanceLists.actives) {
+        // Draw collision masks
+        if (
+          this.#showActiveCollisionMasks
+          && collider.shape !== this.#COLLIDER_SHAPES.NONE
+        ) {
+          // Retrieve collider data
+          let collider = active._getCollider();
+          
+          // Set draw color based on type of collision taking place, if any
+          // Active is colliding with another object, and mouse is over it
+          if (collider.collision && collider.mouseOver) {
+            this.#backContext.fillStyle = 'rgb(0 0 255 / 50%)';
+          // Active is colliding with another object
+          } else if (collider.collision) {
+            this.#backContext.fillStyle = 'rgb(0 255 0 / 50%)';
+          // Mouse is over the active
+          } else if (collider.mouseOver) {
+            this.#backContext.fillStyle = 'rgb(0 255 255 / 50%)';
+          // Active is not colliding with another object, nor is mouse over it
+          } else {
+            this.#backContext.fillStyle = 'rgb(255 255 0 / 50%)';
+          }
+          
+          // Draw rectangular collision mask
+          if (collider.s === this.#COLLIDER_SHAPES.RECTANGLE) {
+            // Draw mask
+            this.#backContext.fillRect(
+              collider.x + 0.5 - this.#camera.x,
+              collider.y + 0.5 - this.#camera.y,
+              collider.w - 1,
+              collider.h - 1
+            );
+            
+            // Draw border
+            this.#backContext.strokeRect(
+              collider.x + 0.5 - this.#camera.x,
+              collider.y + 0.5 - this.#camera.y,
+              collider.w - 1,
+              collider.h - 1
+            );
+          
+          // Otherwise, draw circular collision mask
+          } else {
+            // Set up ellipse path
+            this.#backContext.beginPath();
+            this.#backContext.arc(
+              collider.x - this.#camera.x,
+              collider.y - this.#camera.y,
+              collider.r,
+              0,
+              2 * Math.PI
+            );
+            
+            // Draw mask
+            this.#backContext.fill();
+            
+            // Draw border
+            this.#backContext.stroke();
+          }
+        }
+        
+        // Draw action points
+        if (this.#showActiveActionPoints) {
+          // Get action point system image
+          let img = this.#systemImages['point_action'];
+          
+          // Draw action point
+          this.#backContext.drawImage(
+            img,
+            active.getActionPointX() - Math.floor(img.width/2) - this.#camera.x,
+            active.getActionPointY() - Math.floor(img.height/2) - this.#camera.y
+          );
+        }
+        
+        // Draw origin points
+        if (this.#showActiveOriginPoints) {
+          let img = this.#systemImages['point_origin'];
+          this.#backContext.drawImage(
+            img,
+            active.getX() - Math.floor(img.width/2) - this.#camera.x,
+            active.getY() - Math.floor(img.height/2) - this.#camera.y
+          );
+        }
+        
+        // Draw X,Y position values & animation name
+        if (this.#showActiveInfo) {
+          // TODO: THIS
         }
       }
     }

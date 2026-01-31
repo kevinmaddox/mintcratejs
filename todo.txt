@@ -3,3 +3,8 @@
 [x] The pitch appears to change the time offset of a track... can we calculate
     the correct position when resuming it? Perhaps multiplying by the pitch
     factor?
+[ ] Remaining debug graphics
+[ ] Look through and take care of TODOs
+[ ] Collisions
+[ ] Mouse input
+[ ] Background 9-patches
