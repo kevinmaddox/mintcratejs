@@ -590,7 +590,7 @@ export class MintCrate {
           let animationName = nameParts[1];
           
           // Specify default animation (the first one the user defines)
-          if (typeof this.#data.actives[activeName].initialAnimationName !== 'undefined') {
+          if (typeof this.#data.actives[activeName].initialAnimationName === 'undefined') {
             this.#data.actives[activeName].initialAnimationName = animationName;
           }
           
@@ -1840,6 +1840,18 @@ export class MintCrate {
     if (this.#currentRoom && this.#currentRoom.update) {
       this.#currentRoom.update();
     }
+    
+    // Process animations for active objects
+    for (const active of this.#linearInstanceLists.actives) {
+      // Get active's animation data
+      let animation =
+        this.#data.actives[active.getName()]
+        .animations[active.getAnimationName()];
+      
+      if (animation) {
+        active._animate(animation);
+      }
+    }
   }
   
   //----------------------------------------------------------------------------
@@ -2059,12 +2071,55 @@ export class MintCrate {
           continue;
         }
         
-        // Get current animation frame index
-        let animationFrameNumber = entity.getAnimationFrameNumber();
-        
         // Get graphics-mirroring states
         let flippedX = (!entity.isFlippedHorizontally()) ? 1 : -1;
         let flippedY = (!entity.isFlippedVertically())   ? 1 : -1;
+        
+        this.#backContext.scale(flippedX, flippedY);
+        
+        // Move canvas origin to sprite's origin (transform) point
+        this.#backContext.translate(
+          (entity.getX() - this.#camera.x) * flippedX,
+          (entity.getY() - this.#camera.y) * flippedY
+        );
+        
+        // Rotate
+        // TODO: use MintMath.rad?
+        let angle = entity.getAngle();
+        if (angle !== 0) {
+          this.#backContext.rotate((entity.getAngle() * Math.PI / 180) * flippedX * flippedY);
+        }
+        
+        // Scale
+        if (entity.getScaleX() !== 1 || entity.getScaleY() !== 1) {
+          this.#backContext.scale(entity.getScaleX(), entity.getScaleY());
+        }
+        
+        // Reposition canvas origin to original position.
+        // We don't use the flipped state here, as we need to subtract even when
+        // the sprite's been offset as a result of a -1 scale transformation.
+        this.#backContext.translate(
+          -(entity.getX() - this.#camera.x),
+          -(entity.getY() - this.#camera.y)
+        );
+        
+        this.#backContext.drawImage(animation.img,
+          // Source X/Y
+          animation.frameWidth * (entity.getAnimationFrameNumber() - 1),
+          0,
+          // Source width/height
+          animation.frameWidth,
+          animation.frameHeight,
+          // Destination X/Y
+          entity.getX() + animation.offsetX - this.#camera.x,
+          entity.getY() + animation.offsetY - this.#camera.y,
+          // Destination width/height
+          animation.frameWidth,
+          animation.frameHeight
+        );
+        
+        // Restore transformation matrix
+        this.#backContext.setTransform(1, 0, 0, 1, 0, 0);
         
         // Account for 1-pixel offset if graphic is flipped
         // This is because love flips sprites based on a conceptual space that's

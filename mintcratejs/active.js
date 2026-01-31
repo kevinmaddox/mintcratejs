@@ -89,7 +89,7 @@ export class Active extends Entity {
     this.#colliderOffsetY = colliderOffsetY;
     
     // Initialize animation data
-    this.#animationIsLoaded        = (initialAnimationName !== "");
+    this.#animationIsLoaded    = (initialAnimationName !== "");
     this.#animationList        = animationList;
     this.#animationName        = initialAnimationName;
     this.#currentAnimation     = initialAnimation;

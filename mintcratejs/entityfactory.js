@@ -48,6 +48,7 @@ export class EntityFactory {
     
     // Retrieve initial animation to play upon creation (if available)
     let initialAnimationName = this.#data.actives[name].initialAnimationName ?? "";
+    console.log(this.#data.actives[name]);
     let animation = false;
     if (initialAnimationName) {
       animation = this.#data.actives[name].animations[initialAnimationName];
