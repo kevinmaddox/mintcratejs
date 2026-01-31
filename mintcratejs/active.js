@@ -141,17 +141,16 @@ export class Active extends Entity {
     this.#angle += degrees;
   }
   
-  angleLookAtPoint(x, y) {
+  angleLookAtPoint(bx, by) {
     // Determine correct angle which faces the point
     let ax = this.getX();
     let ay = this.getY();
     
-    let vx = x - ax;
-    let vy = y - ay;
+    let vx = bx - ax;
+    let vy = by - ay;
     
-    // TODO: Is this correct now in JS?
-    let radians = Math.atan(vy, vx);
-    let degrees = radians * (180 / Math.PI);
+    let radians = Math.atan2(vy, vx);
+    let degrees = MintMath.deg(radians);
     
     // Make active look at point
     this.setAngle(degrees);

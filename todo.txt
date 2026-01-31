@@ -9,10 +9,11 @@
 [x] Verify that origin point and collider are being drawn at the right positions
 [x] Collisions
 [x] Mouse input
-[ ] Test Active.angleLookAtPoint()
-[ ] Test scaling
-[ ] Background 9-patches
+[x] Test Active.angleLookAtPoint()
+[x] Test scaling
 [ ] Look through and take care of TODOs
+[ ] Background 9-patches
+[ ] Rewrite paragraph text parser as it has issues
 
 - Long-term --------------------------------------------------------------------
 

@@ -132,8 +132,9 @@ export class MintCrate {
     this.#frontCanvas = document.createElement('canvas');
     this.#frontCanvas.addEventListener('contextmenu',
       event => event.preventDefault());
-    this.#frontCanvas.width = baseWidth;
-    this.#frontCanvas.height = baseHeight;
+    
+    this.#frontCanvas.width    = baseWidth * options.screenScale;
+    this.#frontCanvas.height   = baseHeight * options.screenScale;
     this.#frontCanvas.tabIndex = 1;
     
     this.#frontContext = this.#frontCanvas.getContext('2d');
@@ -1231,12 +1232,6 @@ export class MintCrate {
       foundFunc.cancelled = true;
     }
   }
-  
-  // ---------------------------------------------------------------------------
-  // Game object management
-  // ---------------------------------------------------------------------------
-  
-  // TODO: This?
   
   // ---------------------------------------------------------------------------
   // Camera management

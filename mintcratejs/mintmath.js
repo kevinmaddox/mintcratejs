@@ -13,6 +13,10 @@ MintMath.rad = function(degrees) {
   return degrees * (Math.PI / 180);
 }
 
+MintMath.deg = function(radians) {
+  return radians * (180 / Math.PI);
+}
+
 MintMath.roundPrecise = function(num, numDecimalPlaces) {
   return Math.round((num + Number.EPSILON) * 100) / 100;
 }
