@@ -5,7 +5,8 @@
 
 'use strict';
 
-import { Backdrop } from "./backdrop.js";
+import { Active    } from "./active.js";
+import { Backdrop  } from "./backdrop.js";
 import { Paragraph } from "./paragraph.js";
 
 export class EntityFactory {
@@ -33,6 +34,48 @@ export class EntityFactory {
   //----------------------------------------------------------------------------
   // Methods for adding entities to the current room
   //----------------------------------------------------------------------------
+  
+  addActive(name, x, y) {
+    // Retrieve active's collider data (if available)
+    console.log(this.#data.actives[name]);
+    let collider = this.#data.actives[name].collider ?? {};
+    
+    // Retrieve list of animations for the active (if available)
+    let animationList = [];
+    for (const animName in this.#data.actives[name].animations) {
+      animationList.push(animName);
+    }
+    
+    // Retrieve initial animation to play upon creation (if available)
+    let initialAnimationName = this.#data.actives[name].initialAnimationName ?? "";
+    let animation = false;
+    if (initialAnimationName) {
+      animation = this.#data.actives[name].animations[initialAnimationName];
+    }
+    
+    let active = new Active(
+      name,
+      this.#instanceCollection,
+      this.#linearInstanceLists.backdrops,
+      this.#drawOrders,
+      x,
+      y,
+      collider.shape   ?? 0, // Defaults to MintCrate.COLLIDER_SHAPES.NONE (0)
+      collider.offsetX ?? 0,
+      collider.offsetY ?? 0,
+      collider.width   ?? 0,
+      collider.height  ?? 0,
+      collider.radius  ?? 0,
+      animationList,
+      initialAnimationName,
+      animation
+    );
+    
+    this.#linearInstanceLists.actives.push(active);
+    this.#drawOrders.push(active);
+    
+    return active;
+  }
   
   addBackdrop(name, x, y, options = {}) {
     let backdrop = new Backdrop(

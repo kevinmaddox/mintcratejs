@@ -258,7 +258,14 @@ export class MintCrate {
     // Game data
     this.#COLLIDER_SHAPES = {NONE: 0, RECTANGLE: 1, CIRCLE: 2};
     
-    this.#loadingQueue = {};
+    this.#loadingQueue = {
+      actives: [],
+      backdrops: [],
+      fonts: [],
+      tilemaps: [],
+      sounds: [],
+      music: []
+    };
     
     this.#data = { // TODO: Change to this.#definitions (after everything else)
       actives   : {},
@@ -313,20 +320,30 @@ export class MintCrate {
     // Load system images
     // for (const basename of ['point_origin', 'point_action']) {
     for (const mediaName in SYSTEM_MEDIA_B64.graphics) {
-      promises.push(this.#loadImage(SYSTEM_MEDIA_B64.graphics[mediaName])
+      let promise =
+        this.#loadImage(SYSTEM_MEDIA_B64.graphics[mediaName])
+        .then((img) => this.#colorKeyImage(img, true))
         .then((img) => {
-          this.#systemImages[mediaName] = this.#colorKeyImage(img, true);
-        })
-      );
+          this.#systemImages[mediaName] = img;
+        });
+      
+      promises.push(promise);
     }
     
     // Load system fonts
     for (const mediaName in SYSTEM_MEDIA_B64.fonts) {
-      promises.push(this.#loadImage(SYSTEM_MEDIA_B64.fonts[mediaName])
+      let promise =
+        this.#loadImage(SYSTEM_MEDIA_B64.fonts[mediaName])
+        .then((img) => this.#colorKeyImage(img, true))
         .then((img) => {
-          this.#data.fonts[mediaName] = this.#formatFont(img, true);
-        })
-      );
+          this.#data.fonts[mediaName] = {
+            img: img,
+            charWidth: img.width / 32,
+            charHeight: img.height / 3
+          };
+        });
+      
+      promises.push(promise);
     }
     
     // Present "ready to play" screen for user to trigger loading process
@@ -336,8 +353,7 @@ export class MintCrate {
       }
       
       if (this.#devMode) {
-        // this.#loadActives();
-        this.#loadBackdrops();
+        this.#loadActives();
       } else {
         let over = () => { this.#displayReadyScreen(1); };
         let out  = () => { this.#displayReadyScreen(0); };
@@ -352,8 +368,7 @@ export class MintCrate {
           this.#clearCanvas();
           this.#renderFrame();
           
-          // setTimeout(() => this.#loadActives(), 250);
-          setTimeout(() => this.#loadBackdrops(), 250);
+          setTimeout(() => this.#loadActives(), 250);
         }
         
         this.#frontCanvas.addEventListener('mouseover', over);
@@ -422,61 +437,55 @@ export class MintCrate {
     });
   }
   
-  #formatFont(img, isSystemResource = false) {
-    return {
-      img: this.#colorKeyImage(img, isSystemResource),
-      charWidth: img.width / 32,
-      charHeight: img.height / 3
-    };
-  }
-  
   defineColorKeys(rgbSets) {
     // TODO: This
   }
   
   #colorKeyImage(img, isSystemResource = false) {
-    this.#colorKeyCanvas.width = img.width;
-    this.#colorKeyCanvas.height = img.height;
-    this.#colorKeyContext.clearRect(0, 0, img.width, img.height);
-    
-    this.#colorKeyContext.drawImage(img, 0, 0);
-    
-    let imgData = this.#colorKeyContext.getImageData(
-      0,
-      0,
-      img.width,
-      img.height
-    );
-    
-    let colorKeys = this.#colorKeys;
-    if (isSystemResource) {
-      colorKeys = [
-        {r:  82, g: 173, b: 154},
-        {r: 140, g: 222, b: 205}
-      ];
-    }
-    
-    for (const color of colorKeys) {
-      for (let i = 0; i < imgData.data.length; i += 4) {
-        
-        if (
-          imgData.data[i]   === color.r &&
-          imgData.data[i+1] === color.g &&
-          imgData.data[i+2] === color.b
-        ) {
-          imgData.data[i]   = 0;
-          imgData.data[i+1] = 0;
-          imgData.data[i+2] = 0;
-          imgData.data[i+3] = 0;
+    return new Promise((resolve, reject) => {
+      this.#colorKeyCanvas.width = img.width;
+      this.#colorKeyCanvas.height = img.height;
+      this.#colorKeyContext.clearRect(0, 0, img.width, img.height);
+      
+      this.#colorKeyContext.drawImage(img, 0, 0);
+      
+      let imgData = this.#colorKeyContext.getImageData(
+        0,
+        0,
+        img.width,
+        img.height
+      );
+      
+      let colorKeys = this.#colorKeys;
+      if (isSystemResource) {
+        colorKeys = [
+          {r:  82, g: 173, b: 154},
+          {r: 140, g: 222, b: 205}
+        ];
+      }
+      
+      for (const color of colorKeys) {
+        for (let i = 0; i < imgData.data.length; i += 4) {
+          
+          if (
+            imgData.data[i]   === color.r &&
+            imgData.data[i+1] === color.g &&
+            imgData.data[i+2] === color.b
+          ) {
+            imgData.data[i]   = 0;
+            imgData.data[i+1] = 0;
+            imgData.data[i+2] = 0;
+            imgData.data[i+3] = 0;
+          }
         }
       }
-    }
-    
-    this.#colorKeyContext.putImageData(imgData, 0, 0);
-    
-    img.src = this.#colorKeyCanvas.toDataURL();
-    
-    return img;
+      
+      this.#colorKeyContext.putImageData(imgData, 0, 0);
+      
+      img.addEventListener('load', () => { resolve(img); });
+      img.addEventListener('error', (err) => { reject(err); });
+      img.src = this.#colorKeyCanvas.toDataURL();
+    });
   }
   
   defineActives(data) {
@@ -503,16 +512,135 @@ export class MintCrate {
     this.#loadingQueue.music = data;
   }
   
+  #loadActives() {
+    console.log('Loading Active');
+    this.#displayLoadingScreen('Loading Active');
+    
+    let loadedImages = {};
+    
+    let promises = [];
+    
+    for (const item of this.#loadingQueue.actives) {
+      if (item.name.includes('_') && !item.name.includes('collider')) {
+        let promise =
+          this.#loadImage(`${this.#RES_PATHS.actives}/${item.name}.png`)
+          .then((img) => this.#colorKeyImage(img))
+          .then((img) => loadedImages[item.name] = img);
+        
+        promises.push(promise);
+      }
+    }
+    
+    // Proceed when loading is done
+    Promise.allSettled(promises).then((results) => {
+      if (this.#initFailed(results)) {
+        return;
+      }
+      
+      for (const item of this.#loadingQueue.actives) {
+        // Active's base name
+        if (!item.name.includes('_')) {
+          this.#data.actives[item.name] = {
+            animations: {}
+          };
+          
+        // Active's collider data
+        } else if (item.name.includes('collider')) {
+          // Default params
+          item.offset = item.offset ?? [0, 0];
+          item.width  = item.width  ?? 0;
+          item.height = item.height ?? 0;
+          item.radius = item.radius ?? 0;
+          
+          // Split name to get Active's name
+          let nameParts = item.name.split('_');
+          
+          // Store Active's name
+          let activeName = nameParts[0];
+          
+          // Figure out collider's shape
+          let shape = this.#COLLIDER_SHAPES.RECTANGLE;
+          if (item.radius !== 0) {
+            shape = this.#COLLIDER_SHAPES.CIRCLE;
+          }
+          
+          // Create And store collider data structure
+          this.#data.actives[activeName].collider = {
+            width   : item.width,
+            height  : item.height,
+            radius  : item.radius,
+            offsetX : item.offset[0],
+            offsetY : item.offset[1],
+            shape   : shape
+          };
+          
+        // Active's sprites/animations
+        } else {
+          // Default params
+          item.offset        = item.offset        ?? [0, 0];
+          item.actionPoints  = item.actionPoints  ?? [[0, 0]];
+          item.frameCount    = item.frameCount    ?? 1;
+          item.frameDuration = item.frameDuration ?? 20;
+          
+          // Split name to get Active's name and animation
+          let nameParts = item.name.split('_');
+          
+          // Store active and animation names
+          let activeName = nameParts[0];
+          let animationName = nameParts[1];
+          
+          // Specify default animation (the first one the user defines)
+          if (typeof this.#data.actives[activeName].initialAnimationName !== 'undefined') {
+            this.#data.actives[activeName].initialAnimationName = animationName;
+          }
+          
+          // Store action points, filling with available action points...
+          let actionPoints = [];
+          for (let i = 0; i < item.actionPoints.length; i++) {
+            actionPoints.push(item.actionPoints[i]);
+          }
+          
+          // ... then propagating remaining slots with the last-provided set
+          for (let i = actionPoints.length; i < item.frameCount; i++) {
+            actionPoints.push(item.actionPoints[item.actionPoints.length-1]);
+          }
+          
+          // Store animation data
+          let img = loadedImages[item.name];
+          let animation = {
+            img           : img,
+            quads         : [],
+            offsetX       : item.offset[0],
+            offsetY       : item.offset[1],
+            actionPoints  : actionPoints,
+            frameCount    : item.frameCount,
+            frameDuration : item.frameDuration,
+            frameWidth    : img.width / item.frameCount,
+            frameHeight   : img.height
+          };
+          
+          // Store animation
+          this.#data.actives[activeName].animations[animationName] = animation;
+        }
+      }
+      
+      this.#loadBackdrops();
+    });
+  }
+  
   #loadBackdrops() {
     console.log('Loading Backdrops');
     this.#displayLoadingScreen('Loading Backdrops');
     
+    let loadedImages = {};
+    
     let promises = [];
-    for (const item of this.#loadingQueue.backdrops ?? []) {
-      // Load, process, and store backdrop
+    
+    for (const item of this.#loadingQueue.backdrops) {
       let promise =
         this.#loadImage(`${this.#RES_PATHS.backdrops}/${item.name}.png`)
-        .then((img) => this.#loadIndividualBackdrop(item, img));
+        .then((img) => this.#colorKeyImage(img))
+        .then((img) => loadedImages[item.name] = img);
       
       promises.push(promise);
     }
@@ -523,7 +651,58 @@ export class MintCrate {
         return;
       }
       
-      // this.#loadFonts();
+      for (const item of this.#loadingQueue.backdrops) {
+        let img = loadedImages[item.name];
+        
+        this.#data.backdrops[item.name] = {
+          img: img,
+          mosaic: item.mosaic ?? false,
+          ninePatch: item.ninePatch ?? false
+        };
+        
+        if (item.mosaic) {
+          this.#data.backdrops[`${item.name}_mosaic`] =
+            this.#backContext.createPattern(img, "repeat");
+        }
+      }
+      
+      this.#loadFonts();
+    });
+  }
+  
+  #loadFonts() {
+    console.log('Loading Fonts');
+    this.#displayLoadingScreen('Loading Fonts');
+    
+    let loadedImages = {};
+    
+    let promises = [];
+    
+    for (const item of this.#loadingQueue.fonts) {
+      let promise =
+        this.#loadImage(`${this.#RES_PATHS.fonts}/${item.name}.png`)
+        .then((img) => this.#colorKeyImage(img))
+        .then((img) => loadedImages[item.name] = img);
+      
+      promises.push(promise);
+    }
+    
+    // Proceed when loading is done
+    Promise.allSettled(promises).then((results) => {
+      if (this.#initFailed(results)) {
+        return;
+      }
+      
+      for (const item of this.#loadingQueue.fonts) {
+        let img = loadedImages[item.name];
+        
+        this.#data.fonts[item.name] = {
+          img: img,
+          charWidth: img.width / 32,
+          charHeight: img.height / 3
+        };
+      }
+      
       this.#loadTilemaps();
     });
   }
@@ -532,22 +711,27 @@ export class MintCrate {
     console.log('Loading Tilemaps');
     this.#displayLoadingScreen('Loading Tilemaps');
     
+    let loadedImages = {};
+    let loadedJson   = {};
+    
     let promises = [];
-    for (const item of this.#loadingQueue.tilemaps ?? []) {
+    
+    for (const item of this.#loadingQueue.tilemaps) {
       // Tilemap's base name (refers to the image file)
       if (!item.name.includes('_')) {
-        // Load, process, and store tilemap data
         let promise =
           this.#loadImage(`${this.#RES_PATHS.tilemaps}/${item.name}.png`)
-          .then((img) => this.#loadIndividualTilemap(item, img));
+          .then((img) => this.#colorKeyImage(img))
+          .then((img) => loadedImages[item.name] = img);
+        
         promises.push(promise);
+      
       // Tilemap's actual map data layout files
       } else {
-        // Load, process, and store tilemap layout
         let promise =
           fetch(`${this.#RES_PATHS.tilemaps}/${item.name}.json`)
           .then((response) => response.json())
-          .then((data) => this.#loadIndividualTilemapLayout(item, data));
+          .then((json) => loadedJson[item.name] = json);
         
         promises.push(promise);
       }
@@ -557,6 +741,43 @@ export class MintCrate {
     Promise.allSettled(promises).then((results) => {
       if (this.#initFailed(results))
         return;
+      
+      for (const item of this.#loadingQueue.tilemaps) {
+        // Tilemap's base name (refers to the image file)
+        if (!item.name.includes('_')) {
+          let img = loadedImages[item.name];
+          
+          this.#data.tilemaps[item.name] = {
+            img: img,
+            tileWidth: item.tileWidth,
+            tileHeight: item.tileHeight,
+            clippingRects: [],
+            layouts: {}
+          };
+          
+          for (let y = 0; y < img.height; y += item.tileHeight) {
+            for (let x = 0; x < img.width; x += item.tileWidth) {
+              if (x < img.width && y < img.height) {
+                this.#data.tilemaps[item.name].clippingRects.push({x:x, y:y});
+              }
+            }
+          }
+          
+        // Tilemap's actual map data layout files
+        } else {
+          let layoutData = loadedJson[item.name];
+          
+          let nameParts = item.name.split('_');
+          let tilemapName = nameParts[0];
+          let layoutName = nameParts[1];
+          
+          this.#data.tilemaps[tilemapName].layouts[layoutName] = {
+            tiles: layoutData.tiles
+          };
+          
+          this.#generateCollisionMap(tilemapName, layoutName, layoutData.behaviors);
+        }
+      }
       
       this.#loadSounds();
     });
@@ -571,22 +792,16 @@ export class MintCrate {
     // blocked from being instantiated by the browser
     this.#audioContext = new AudioContext();
     
+    let loadedOggs = {};
+    
     let promises = [];
-    for (const item of this.#loadingQueue.sounds ?? []) {
-      // let promise =
-        // this.#loadAudioFile(`${this.#RES_PATHS.sounds}/${item.name}.ogg`);
+    
+    for (const item of this.#loadingQueue.sounds) {
       let promise =
         fetch(`${this.#RES_PATHS.sounds}/${item.name}.ogg`)
         .then((response) => response.arrayBuffer())
         .then((arrayBuffer) => this.#audioContext.decodeAudioData(arrayBuffer))
-        .then((audioBuffer) => {
-          this.#data.sounds[item.name] = {
-            source: new Sound(this.#audioContext, audioBuffer),
-            lastVolume: 1,
-            lastPitch: 1
-          };
-        });
-        // .then((audioBuffer) => this.#data.sounds[item.name] = audioBuffer);
+        .then((audioBuffer) => loadedOggs[item.name] = audioBuffer);
       
       promises.push(promise);
     }
@@ -595,6 +810,16 @@ export class MintCrate {
     Promise.allSettled(promises).then((results) => {
       if (this.#initFailed(results))
         return;
+      
+      for (const item of this.#loadingQueue.sounds) {
+        let audioBuffer = loadedOggs[item.name];
+        
+        this.#data.sounds[item.name] = {
+          source: new Sound(this.#audioContext, audioBuffer),
+          lastVolume: 1,
+          lastPitch: 1
+        };
+      }
       
       this.#loadMusic();
     });
@@ -604,30 +829,16 @@ export class MintCrate {
     console.log('Loading Music');
     this.#displayLoadingScreen('Loading Music');
     
+    let loadedOggs = {};
+    
     let promises = [];
-    for (const item of this.#loadingQueue.music ?? []) {
+    
+    for (const item of this.#loadingQueue.music) {
       let promise =
         fetch(`${this.#RES_PATHS.music}/${item.name}.ogg`)
         .then((response) => response.arrayBuffer())
         .then((arrayBuffer) => this.#audioContext.decodeAudioData(arrayBuffer))
-        .then((audioBuffer) => {
-          this.#data.music[item.name] = {
-            source: new Sound(this.#audioContext, audioBuffer),
-            relativeVolume: 0,
-            state: this.#MUSIC_STATES.STOPPED,
-            fade: {
-              type: this.#MUSIC_FADE_TYPES.IN,
-              remainingFrames: 0,
-              affectingValue: 0
-            },
-            loop: {
-              enabled : item.loop      ?? false,
-              start   : item.loopStart ?? 0,
-              end     : item.loopEnd   ?? audioBuffer.duration
-            }
-          };
-        });
-        // .then((audioBuffer) => this.#data.music[item.name] = audioBuffer);
+        .then((audioBuffer) => loadedOggs[item.name] = audioBuffer);
       
       promises.push(promise);
     }
@@ -636,53 +847,29 @@ export class MintCrate {
     Promise.allSettled(promises).then((results) => {
       if (this.#initFailed(results))
         return;
-      console.log(this.#data.music);
+      
+      for (const item of this.#loadingQueue.music) {
+        let audioBuffer = loadedOggs[item.name];
+        
+        this.#data.music[item.name] = {
+          source: new Sound(this.#audioContext, audioBuffer),
+          relativeVolume: 0,
+          state: this.#MUSIC_STATES.STOPPED,
+          fade: {
+            type: this.#MUSIC_FADE_TYPES.IN,
+            remainingFrames: 0,
+            affectingValue: 0
+          },
+          loop: {
+            enabled : item.loop      ?? false,
+            start   : item.loopStart ?? 0,
+            end     : item.loopEnd   ?? audioBuffer.duration
+          }
+        };
+      }
+      
       this.#initDone();
     });
-  }
-  
-  #loadIndividualBackdrop(item, img) {
-    this.#data.backdrops[item.name] = {
-      img: this.#colorKeyImage(img),
-      mosaic: item.mosaic ?? false,
-      ninePatch: item.ninePatch ?? false
-    };
-    
-    if (item.mosaic) {
-      console.log(item.name);
-      this.#data.backdrops[`${item.name}_mosaic`] =
-        this.#backContext.createPattern(img, "repeat");
-    }
-  }
-  
-  #loadIndividualTilemap(item, img) {
-    this.#data.tilemaps[item.name] = {
-      img: this.#colorKeyImage(img),
-      tileWidth: item.tileWidth,
-      tileHeight: item.tileHeight,
-      clippingRects: [],
-      layouts: {}
-    };
-    
-    for (let y = 0; y < img.height; y += item.tileHeight) {
-      for (let x = 0; x < img.width; x += item.tileWidth) {
-        if (x < img.width && y < img.height) {
-          this.#data.tilemaps[item.name].clippingRects.push({x:x, y:y});
-        }
-      }
-    }
-  }
-  
-  #loadIndividualTilemapLayout(item, layoutData) {
-    let nameParts = item.name.split('_');
-    let tilemapName = nameParts[0];
-    let layoutName = nameParts[1];
-    
-    this.#data.tilemaps[tilemapName].layouts[layoutName] = {
-      tiles: layoutData.tiles
-    };
-    
-    this.#generateCollisionMap(tilemapName, layoutName, layoutData.behaviors);
   }
   
   #generateCollisionMap(tilemapName, layoutName, behaviorMap) {
@@ -702,9 +889,6 @@ export class MintCrate {
         }
       }
     }
-    
-    console.log(layoutName);
-    console.log(bMap);
     
     // Generate collision map
     layout.collisionMasks = {};
@@ -779,8 +963,6 @@ export class MintCrate {
         mask.h *= tilemapData.tileHeight;
       }
     }
-    
-    console.log(layout.collisionMasks);
   }
   
   #initFailed(results) {
@@ -1301,14 +1483,12 @@ export class MintCrate {
         track.state !== this.#MUSIC_STATES.STOPPING
         && track.state !== this.#MUSIC_STATES.STOPPED
       ) {
-        console.log('stop 1!');
         this.#stopMusicPlayback(this.#currentMusicTrackName, fadeLength);
         
       } else if (
         track.state === this.#MUSIC_STATES.STOPPING
         && fadeLength === 0
       ) {
-        console.log('stop 2!');
         this.#stopMusicPlayback(this.#currentMusicTrackName, fadeLength);
         this.#currentMusicTrackName = "";
       }
@@ -1340,7 +1520,6 @@ export class MintCrate {
         track.state === this.#MUSIC_STATES.PAUSING
         || track.state === this.#MUSIC_STATES.PAUSED
       ) {
-        console.log('resume!');
         this.#startMusicPlayback(this.#currentMusicTrackName, fadeLength, true);
       }
     }
@@ -1352,7 +1531,6 @@ export class MintCrate {
     let track = this.#data.music[trackName];
     
     if (fadeLength === 0) {
-      console.log('a');
       track.fade.remainingFrames = 0;
       track.relativeVolume = 1;
       
@@ -1371,10 +1549,8 @@ export class MintCrate {
       track.fade.affectingValue  = affectingFadeValue;
       
       if (isResuming) {
-        console.log('1');
         track.source.resume(0, this.#masterBgmPitch, track.loop);
       } else {
-        console.log('2');
         track.source.play(0, this.#masterBgmPitch, track.loop);
       }
     }
@@ -1873,6 +2049,36 @@ export class MintCrate {
       
       // Draw actives
       if (entityType === "active") {
+        // Get active's animation data
+        let animation =
+          this.#data.actives[entity.getName()]
+          .animations[entity.getAnimationName()];
+        
+        // If active doesn't have any animation graphics, then skip drawing it
+        if (!animation) {
+          continue;
+        }
+        
+        // Get current animation frame index
+        let animationFrameNumber = entity.getAnimationFrameNumber();
+        
+        // Get graphics-mirroring states
+        let flippedX = (!entity.isFlippedHorizontally()) ? 1 : -1;
+        let flippedY = (!entity.isFlippedVertically())   ? 1 : -1;
+        
+        // Account for 1-pixel offset if graphic is flipped
+        // This is because love flips sprites based on a conceptual space that's
+        // in-between pixels, rather than the actual pixel edge of the image
+        // TODO: This? Or remove this??
+        /*
+        local flipOffsetX = 0
+        local flipOffsetY = 0
+        if (active:isFlippedHorizontally()) then flipOffsetX = 1 end
+        if (active:isFlippedVertically()  ) then flipOffsetY = 1 end
+        */
+        
+        // Draw active
+        
         
       // Draw backdrops
       } else if (entityType === "backdrop") {
@@ -1897,7 +2103,7 @@ export class MintCrate {
           this.#backContext.fillRect(0, 0, 300, 300);
           this.#backContext.setTransform(1, 0, 0, 1, 0, 0);
         } else if (isNinePatch) {
-          
+          // TODO: This
         }
       
       // Draw paragraphs
