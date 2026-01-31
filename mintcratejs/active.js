@@ -8,6 +8,7 @@
 'use strict';
 
 import { Entity } from "./entity.js";
+import { MintMath } from "./mintmath.js";
 
 export class Active extends Entity {
   
@@ -26,6 +27,7 @@ export class Active extends Entity {
   #flippedHorizontally;
   #flippedVertically;
   
+  static COLLIDER_SHAPES = {NONE: 0, RECTANGLE: 1, CIRCLE: 2};
   #collider;
   #colliderOffsetX;
   #colliderOffsetY;
@@ -99,6 +101,28 @@ export class Active extends Entity {
     // Initialize action point coordinates
     this.#actionPointX = 0;
     this.#actionPointY = 0;
+  }
+  
+  // ---------------------------------------------------------------------------
+  // Methods for managing positions
+  // ---------------------------------------------------------------------------
+  
+  setX(x) {
+    super.setX(x);
+    
+    // Update collider's coordinate
+    if (this.#collider.s !== Active.COLLIDER_SHAPES.NONE) {
+      this.#collider.x = x + this.#colliderOffsetX;
+    }
+  }
+  
+  setY(y) {
+    super.setY(y);
+    
+    // Update collider's coordinate
+    if (this.#collider.s !== Active.COLLIDER_SHAPES.NONE) {
+      this.#collider.y = y + this.#colliderOffsetY;
+    }
   }
   
   // ---------------------------------------------------------------------------
@@ -276,7 +300,7 @@ export class Active extends Entity {
   // Methods for retrieving data about the collision mask
   // ---------------------------------------------------------------------------
   
-  _getcollider() {
+  _getCollider() {
     return this.#collider;
   }
   
@@ -359,8 +383,8 @@ export class Active extends Entity {
     
     // Get action points based on animation frame
     if (this.#animationIsLoaded) {
-      ax = this.#currentAnimation.actionPoints[this.#animationFrameNumber][1];
-      ay = this.#currentAnimation.actionPoints[this.#animationFrameNumber][2];
+      ax = this.#currentAnimation.actionPoints[this.#animationFrameNumber-1][0];
+      ay = this.#currentAnimation.actionPoints[this.#animationFrameNumber-1][1];
       
       ax += this.#currentAnimation.offsetX;
       ay += this.#currentAnimation.offsetY;
@@ -377,7 +401,7 @@ export class Active extends Entity {
     ay *= this.#scaleY * flippedY;
     
     // Rotate
-    let r  = this.#angle * Math.PI / 180; // TODO: Use MintMath rad func?
+    let r  = MintMath.rad(this.#angle);
     let rx = ax * Math.cos(r) - ay * Math.sin(r);
     let ry = ax * Math.sin(r) + ay * Math.cos(r);
     

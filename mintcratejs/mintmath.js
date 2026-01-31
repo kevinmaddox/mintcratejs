@@ -5,10 +5,14 @@
 
 export let MintMath  = {};
 
-MintMath.clamp = function(value, limitLower, limitUpper) {
-  return Math.max(limitLower, Math.min(limitUpper, value));
+MintMath.clamp = function(num, limitLower, limitUpper) {
+  return Math.max(limitLower, Math.min(limitUpper, num));
 };
 
 MintMath.rad = function(degrees) {
   return degrees * (Math.PI / 180);
+}
+
+MintMath.roundPrecise = function(num, numDecimalPlaces) {
+  return Math.round((num + Number.EPSILON) * 100) / 100;
 }

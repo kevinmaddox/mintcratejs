@@ -5,6 +5,7 @@
 
 'use strict';
 
+import { Active }        from "./active.js";
 import { InputHandler }  from "./inputhandler.js";
 import { Sound }         from "./sound.js";
 import { EntityFactory } from "./entityfactory.js";
@@ -97,7 +98,6 @@ export class MintCrate {
   #currentMusicTrackName;
   #systemAudioHalted
   
-  #COLLIDER_SHAPES;
   #loadingQueue;
   #data;
   #instanceCollection;
@@ -256,8 +256,6 @@ export class MintCrate {
     this.#systemAudioHalted = false;
     
     // Game data
-    this.#COLLIDER_SHAPES = {NONE: 0, RECTANGLE: 1, CIRCLE: 2};
-    
     this.#loadingQueue = {
       actives: [],
       backdrops: [],
@@ -559,11 +557,11 @@ export class MintCrate {
           let activeName = nameParts[0];
           
           // Figure out collider's shape
-          let shape = this.#COLLIDER_SHAPES.NONE;
-          if (item.width !== 0 && item.height !== ) {
-            shape = this.#COLLIDER_SHAPES.RECTANGLE;
+          let shape = Active.COLLIDER_SHAPES.NONE;
+          if (item.width !== 0 && item.height !== 0) {
+            shape = Active.COLLIDER_SHAPES.RECTANGLE;
           } else if (item.radius !== 0) {
-            shape = this.#COLLIDER_SHAPES.CIRCLE;
+            shape = Active.COLLIDER_SHAPES.CIRCLE;
           }
           
           // Create And store collider data structure
@@ -945,7 +943,7 @@ export class MintCrate {
         }
         
         layout.collisionMasks[tileType].push({
-          s: this.#COLLIDER_SHAPES.RECTANGLE,
+          s: Active.COLLIDER_SHAPES.RECTANGLE,
           x: start.col,
           y: start.row,
           w: stop.col - start.col + 1,
@@ -1363,7 +1361,7 @@ export class MintCrate {
   // ---------------------------------------------------------------------------
   
   testActiveCollision(activeA, activeB) {
-    return this.#testCollision(activeA.getCollider(), activeB.getCollider());
+    return this.#testCollision(activeA._getCollider(), activeB._getCollider());
   }
   
   testMapCollision(active, tileType) {
@@ -1372,11 +1370,11 @@ export class MintCrate {
     
     if (this.#tilemapIsSet) {
       // Get all collision masks
-      let mapColliders = this:#getTilemapCollisionMasks()[tileType];
+      let mapColliders = this.#getTilemapCollisionMasks()[tileType];
       
       for (const collider of mapColliders) {
         // See if active is intersecting with collision mask
-        if (this:#testCollision(active._getCollider(), collider)) {
+        if (this.#testCollision(active._getCollider(), collider)) {
           // Store data regarding the collision
           collisions.push({
             leftEdgeX   : collider.x,
@@ -1401,8 +1399,8 @@ export class MintCrate {
   #testCollision(colliderA, colliderB) {
     // Don't test for collision if one or more colliders haven't been defined
     if (
-         colliderA.s === this.#COLLIDER_SHAPES.NONE
-      || colliderB.s === this.#COLLIDER_SHAPES.NONE
+         colliderA.s === Active.COLLIDER_SHAPES.NONE
+      || colliderB.s === Active.COLLIDER_SHAPES.NONE
     ) {
       return false;
     }
@@ -1412,8 +1410,8 @@ export class MintCrate {
     
     // Collision test: both colliders are rectangles
     if (
-         colliderA.s === this.#COLLIDER_SHAPES.RECTANGLE
-      && colliderB.s === this.#COLLIDER_SHAPES.RECTANGLE
+         colliderA.s === Active.COLLIDER_SHAPES.RECTANGLE
+      && colliderB.s === Active.COLLIDER_SHAPES.RECTANGLE
     ) {
       if (
         colliderA.x < (colliderB.x + colliderB.w)
@@ -1426,8 +1424,8 @@ export class MintCrate {
     
     // Collision test: both colliders are circles
     } else if (
-         colliderA.s === this.#COLLIDER_SHAPES.CIRCLE
-      && colliderB.s === this.#COLLIDER_SHAPES.CIRCLE
+         colliderA.s === Active.COLLIDER_SHAPES.CIRCLE
+      && colliderB.s === Active.COLLIDER_SHAPES.CIRCLE
     ) {
       let dx  = colliderA.x - colliderB.x;
       let dy  = colliderA.y - colliderB.y;
@@ -1437,7 +1435,7 @@ export class MintCrate {
     } else {
       // Make things consistent: collider A should always be rectangular, and
       // collider B should always be circular, so flip them around if necessary
-      if (colliderA.s == this.#COLLIDER_SHAPES.CIRCLE) {
+      if (colliderA.s == Active.COLLIDER_SHAPES.CIRCLE) {
         [colliderA, colliderB] = [colliderB, colliderA];
       }
       
@@ -1488,12 +1486,12 @@ export class MintCrate {
     let over     = false;
     
     // Don't test for collision if collider hasn't been defined
-    if (collider.s === this.#COLLIDER_SHAPES.NONE) {
+    if (collider.s === Active.COLLIDER_SHAPES.NONE) {
       return false;
     }
     
     // Hover check: collider is a rectangle
-    if (collider.s === this.#COLLIDER_SHAPES.RECTANGLE) {
+    if (collider.s === Active.COLLIDER_SHAPES.RECTANGLE) {
       over = (
            mouseX >= collider.x
         && mouseY >= collider.y
@@ -1908,6 +1906,21 @@ export class MintCrate {
       this.#currentMusicTrackName = "";
     }
     
+    // Reset collision states for actives
+    for (const active of this.#linearInstanceLists.actives) {
+      active._getCollider().collision = false;
+      active._getCollider().mouseOver = false;
+    }
+    
+    // Reset collision states for tilemap masks
+    if (this.#tilemapIsSet) {
+      for (const maskCollection of Object.values(this.#getTilemapCollisionMasks())) {
+        for (const mask of maskCollection) {
+          mask.collision = false;
+        }
+      }
+    }
+    
     // Handle music and fading
     for (const trackName in this.#data.music) {
       let track = this.#data.music[trackName];
@@ -2163,14 +2176,14 @@ export class MintCrate {
       || this.#showActiveActionPoints
     ) {
       for (const active of this.#linearInstanceLists.actives) {
+        // Retrieve collider data
+        let collider = active._getCollider();
+        
         // Draw collision masks
         if (
           this.#showActiveCollisionMasks
-          && collider.shape !== this.#COLLIDER_SHAPES.NONE
+          && collider.shape !== Active.COLLIDER_SHAPES.NONE
         ) {
-          // Retrieve collider data
-          let collider = active._getCollider();
-          
           // Set draw color based on type of collision taking place, if any
           // Active is colliding with another object, and mouse is over it
           if (collider.collision && collider.mouseOver) {
@@ -2187,7 +2200,7 @@ export class MintCrate {
           }
           
           // Draw rectangular collision mask
-          if (collider.s === this.#COLLIDER_SHAPES.RECTANGLE) {
+          if (collider.s === Active.COLLIDER_SHAPES.RECTANGLE) {
             // Draw mask
             this.#backContext.fillRect(
               collider.x + 0.5 - this.#camera.x,
@@ -2249,7 +2262,67 @@ export class MintCrate {
         
         // Draw X,Y position values & animation name
         if (this.#showActiveInfo) {
-          // TODO: THIS
+          // Get font
+          let font = this.#data.fonts['system_counter'];
+          
+          // Get zero-padding size
+          let pad = Math.max(
+            this.getRoomWidth().toString().length,
+            this.getRoomHeight().toString().length
+          );
+          
+          // Get x and y coordinates
+          let strX = MintMath.roundPrecise(active.getX(), 2).toString();
+          let strY = MintMath.roundPrecise(active.getY(), 2).toString();
+          
+          // Split coordinates, and pad with zeroes for consistency
+          let xParts = strX.toString().split('.');
+          let yParts = strY.toString().split('.');
+          if (xParts.length === 1) { xParts[1] = ""; }
+          if (yParts.length === 1) { yParts[1] = ""; }
+          
+          strX = xParts[0].padStart(pad, " ") + "." + xParts[1].padEnd(2, "0");
+          strY = yParts[0].padStart(pad, " ") + "." + yParts[1].padEnd(2, "0");
+          
+          strX = "X:" + strX;
+          strY = "Y:" + strY;
+          
+          // Push into array representing text lines
+          let numBlankLines = 1;
+          let lines = Array(numBlankLines).fill(1);
+          lines.push(strX);
+          lines.push(strY);
+          lines.push(active.getAnimationName());
+          
+          // Constrain text from going off the screen
+          let x = active.getX();
+          let y = active.getY();
+          
+          let halfWidth  = strX.length * font.charWidth  / 2;
+          let height = lines.length * font.charHeight;
+          
+          let screenLeftEdge = this.#camera.x;
+          let screenTopEdge  = this.#camera.y
+          let screenRightEdge = this.#camera.x + this.#BASE_WIDTH;
+          let screenBottomEdge = this.#camera.y + this.#BASE_HEIGHT
+          
+          // Constrain text - Horizontal edges
+          x = Math.max(x, screenLeftEdge + halfWidth);
+          x = Math.min(x, screenRightEdge - halfWidth);
+          
+          // Constrain text - Vertical edges
+          y = Math.max(y, screenTopEdge - (numBlankLines * font.charHeight));
+          y = Math.min(y, screenBottomEdge - height);
+          
+          // Draw text
+          this.#drawText(
+            lines,
+            font,
+            x - this.#camera.x,
+            y - this.#camera.y,
+            0,
+            "center"
+          );
         }
       }
     }
@@ -2340,10 +2413,9 @@ export class MintCrate {
         );
         
         // Rotate
-        // TODO: use MintMath.rad?
         let angle = entity.getAngle();
         if (angle !== 0) {
-          this.#backContext.rotate((entity.getAngle() * Math.PI / 180) * flippedX * flippedY);
+          this.#backContext.rotate(MintMath.rad(entity.getAngle()) * flippedX * flippedY);
         }
         
         // Scale
@@ -2359,6 +2431,11 @@ export class MintCrate {
           -(entity.getY() - this.#camera.y)
         );
         
+        // Account for 1-pixel offset if graphic is flipped
+        let flipOffsetX = entity.isFlippedHorizontally() ? 1 : 0;
+        let flipOffsetY = entity.isFlippedVertically()   ? 1 : 0;
+        
+        // Draw active
         this.#backContext.drawImage(animation.img,
           // Source X/Y
           animation.frameWidth * (entity.getAnimationFrameNumber() - 1),
@@ -2367,8 +2444,8 @@ export class MintCrate {
           animation.frameWidth,
           animation.frameHeight,
           // Destination X/Y
-          entity.getX() + animation.offsetX - this.#camera.x,
-          entity.getY() + animation.offsetY - this.#camera.y,
+          entity.getX() + animation.offsetX - flipOffsetX - this.#camera.x,
+          entity.getY() + animation.offsetY - flipOffsetY - this.#camera.y,
           // Destination width/height
           animation.frameWidth,
           animation.frameHeight
@@ -2376,20 +2453,6 @@ export class MintCrate {
         
         // Restore transformation matrix
         this.#backContext.setTransform(1, 0, 0, 1, 0, 0);
-        
-        // Account for 1-pixel offset if graphic is flipped
-        // This is because love flips sprites based on a conceptual space that's
-        // in-between pixels, rather than the actual pixel edge of the image
-        // TODO: This? Or remove this??
-        /*
-        local flipOffsetX = 0
-        local flipOffsetY = 0
-        if (active:isFlippedHorizontally()) then flipOffsetX = 1 end
-        if (active:isFlippedVertically()  ) then flipOffsetY = 1 end
-        */
-        
-        // Draw active
-        
         
       // Draw backdrops
       } else if (entityType === "backdrop") {

@@ -96,9 +96,9 @@ export class Entity {
     this.#x = x;
     
     // Update collider's position
-    if (this._collider) {
-      this._collider.x = this.#x + this._colliderOffsetX
-    }
+    // if (this._collider) {
+      // this._collider.x = this.#x + this._colliderOffsetX
+    // }
   }
   
   setY(y) {
@@ -106,9 +106,9 @@ export class Entity {
     this.#y = y;
     
     // Update collider's position
-    if (this._collider) {
-      this._collider.y = this.#y + this._colliderOffsetY
-    }
+    // if (this._collider) {
+      // this._collider.y = this.#y + this._colliderOffsetY
+    // }
   }
   
   moveX(pixels) {

@@ -1,10 +1,20 @@
+- Short-term -------------------------------------------------------------------
 [x] Check crossfades... the fading-out song seems to fade quicker than the
     fading-in song
 [x] The pitch appears to change the time offset of a track... can we calculate
     the correct position when resuming it? Perhaps multiplying by the pitch
     factor?
-[ ] Remaining debug graphics
-[ ] Look through and take care of TODOs
-[ ] Collisions
+[x] Remaining debug graphics
+[x] Ensure that the 1-pixel sprite flip offset from Love2D doesn't happen here
+[x] Verify that origin point and collider are being drawn at the right positions
+[x] Collisions
 [ ] Mouse input
+[ ] Test Active.angleLookAtPoint()
 [ ] Background 9-patches
+[ ] Look through and take care of TODOs
+
+- Long-term --------------------------------------------------------------------
+
+
+- Ponderings -------------------------------------------------------------------
+- Should we halt game logic when the fade delay of a room transition is hit?
