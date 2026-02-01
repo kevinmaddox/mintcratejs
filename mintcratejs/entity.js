@@ -57,7 +57,6 @@ export class Entity {
   
   destroy() {
     // Remove entity from Mintcrate's instance list
-    // TODO: Implement recursive function for finding object and removing it
     MintUtil.deleteInCollection(this, this.#instances);
     
     // Remove entity from MintCrate's linear instance list

@@ -59,8 +59,6 @@ export class Paragraph extends Entity {
   }
   
   setTextContent(textContent) {
-    // TODO: Redo all this and try to make it more logical
-    
     // Convert any input to a string
     textContent = textContent.toString();
     

@@ -109,8 +109,6 @@ export class Sound {
     this.setVolume(volume);
     
     // Set pitch
-    // TODO: Test these values
-    pitch = MintMath.clamp(pitch, 0.1, 30);
     this.#sourceNode.playbackRate.value = pitch;
     
     // Set looping properties
@@ -148,7 +146,6 @@ export class Sound {
   }
   
   setVolume(volume) {
-    // TODO: Test these values
     volume = MintMath.clamp(volume, 0, 1);
     
     if (this.#gainNode) {
@@ -157,9 +154,7 @@ export class Sound {
   }
   
   setPitch(pitch) {
-    // TODO: Test these values
     pitch = MintMath.clamp(pitch, 0.1, 30);
-    
     
     if (this.#state === Sound.PLAYBACK_STATES.PLAYING) {
       let timeElapsed = this.#audioContext.currentTime - this.#lastTimestamp;

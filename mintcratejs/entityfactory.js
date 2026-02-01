@@ -79,6 +79,8 @@ export class EntityFactory {
   }
   
   addBackdrop(name, x, y, options = {}) {
+    let img = this.#data.backdrops[name].img;
+    
     let backdrop = new Backdrop(
       name,
       this.#instanceCollection,
@@ -86,8 +88,10 @@ export class EntityFactory {
       this.#drawOrders,
       x,
       y,
-      240,
-      172
+      options.width ?? img.width,
+      options.height ?? img.height,
+      img.width,
+      img.height
     );
     
     this.#linearInstanceLists.backdrops.push(backdrop);

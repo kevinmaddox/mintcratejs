@@ -266,7 +266,7 @@ export class MintCrate {
       music: []
     };
     
-    this.#data = { // TODO: Change to this.#definitions (after everything else)
+    this.#data = {
       actives   : {},
       backdrops : {},
       fonts     : {},
@@ -437,7 +437,7 @@ export class MintCrate {
   }
   
   defineColorKeys(rgbSets) {
-    // TODO: This
+    this.#colorKeys = rgbSets;
   }
   
   #colorKeyImage(img, isSystemResource = false) {
@@ -657,14 +657,15 @@ export class MintCrate {
         
         this.#data.backdrops[item.name] = {
           img: img,
+          pattern: this.#backContext.createPattern(img, "repeat"),
           mosaic: item.mosaic ?? false,
           ninePatch: item.ninePatch ?? false
         };
         
-        if (item.mosaic) {
-          this.#data.backdrops[`${item.name}_mosaic`] =
-            this.#backContext.createPattern(img, "repeat");
-        }
+        // if (item.mosaic) {
+          // this.#data.backdrops[`${item.name}_mosaic`] =
+            // this.#backContext.createPattern(img, "repeat");
+        // }
       }
       
       this.#loadFonts();
@@ -1048,8 +1049,8 @@ export class MintCrate {
     
     // Stop all audio
     if (!persistAudio) {
-      this.stopAllSounds();
-      this.stopMusic();
+      this.stopAllSfx();
+      this.stopBgm();
     }
     
     // Reset camera
@@ -1153,7 +1154,7 @@ export class MintCrate {
     
     // Fade out music (if specified)
     if (fadeMusic) {
-      this.stopMusic(this.#fadeLevel / this.#fadeValue);
+      this.stopBgm(this.#fadeLevel / this.#fadeValue);
     }
   }
   
@@ -1559,12 +1560,15 @@ export class MintCrate {
   //----------------------------------------------------------------------------
   
   #keyHandler(e) {
-    // TODO: Make it so you can't use shift/ctrl/alt or the F keys
     if (
       (!this.#gameHasFocus() && !this.#devMode)
-      || (e.ctrlKey && e.key.toLowerCase() === 'r')
-      || e.key === 'F12'
-      || (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'i')
+      || e.ctrlKey
+      || e.shiftKey
+      || e.altKey
+      || e.key.startsWith('F') && e.key.length === 2
+      // || (e.ctrlKey && e.key.toLowerCase() === 'r')
+      // || e.key === 'F12'
+      // || (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'i')
     ) {
       return;
     }
@@ -1599,10 +1603,7 @@ export class MintCrate {
   // Audio
   // ---------------------------------------------------------------------------
   
-  // TODO: Change Music -> BGM and Sound -> SFX?
-  // playBgm(), playSfx, setBgmVolume, etc.
-  
-  playSound(soundName, options = {}) {
+  playSfx(soundName, options = {}) {
     // Default params
     options.volume = options.volume ?? 1;
     options.pitch = options.pitch ?? 1;
@@ -1618,7 +1619,7 @@ export class MintCrate {
     sound.source.play(options.volume * this.#masterVolume.sfx, options.pitch, {enabled: false});
   }
   
-  stopAllSounds() {
+  stopAllSfx() {
     // Stop all playing sounds
     for (const soundName in this.#data.sounds) {
       let sound = this.#data.sounds[soundName];
@@ -1626,8 +1627,7 @@ export class MintCrate {
     }
   }
   
-  // https://github.com/WebAudio/web-audio-api-v2/issues/105
-  playMusic(trackName, fadeLength = 0) {
+  playBgm(trackName, fadeLength = 0) {
     /*
       01. No track is playing at all
         -> Play the new track
@@ -1643,46 +1643,46 @@ export class MintCrate {
     */
     
     // State 01
-    if (!this.#musicTrackIsLoaded()) {
-      this.#startMusicPlayback(trackName, fadeLength);
+    if (!this.#bgmTrackIsLoaded()) {
+      this.#startBgmPlayback(trackName, fadeLength);
     
     // State 02
     } else if (this.#currentMusicTrackName !== trackName) {
-      this.#stopMusicPlayback(this.#currentMusicTrackName, fadeLength);
-      this.#startMusicPlayback(trackName, fadeLength);
+      this.#stopBgmPlayback(this.#currentMusicTrackName, fadeLength);
+      this.#startBgmPlayback(trackName, fadeLength);
     
     // State 03 & State 04
     } else {
-      this.#stopMusicPlayback(this.#currentMusicTrackName, 0);
-      this.#startMusicPlayback(trackName, fadeLength);
+      this.#stopBgmPlayback(this.#currentMusicTrackName, 0);
+      this.#startBgmPlayback(trackName, fadeLength);
     }
     
     // Store the music track name
     this.#currentMusicTrackName = trackName;
   }
   
-  stopMusic(fadeLength = 0) {
-    if (this.#musicTrackIsLoaded()) {
+  stopBgm(fadeLength = 0) {
+    if (this.#bgmTrackIsLoaded()) {
       let track = this.#data.music[this.#currentMusicTrackName];
       
       if (
         track.state !== this.#MUSIC_STATES.STOPPING
         && track.state !== this.#MUSIC_STATES.STOPPED
       ) {
-        this.#stopMusicPlayback(this.#currentMusicTrackName, fadeLength);
+        this.#stopBgmPlayback(this.#currentMusicTrackName, fadeLength);
         
       } else if (
         track.state === this.#MUSIC_STATES.STOPPING
         && fadeLength === 0
       ) {
-        this.#stopMusicPlayback(this.#currentMusicTrackName, fadeLength);
+        this.#stopBgmPlayback(this.#currentMusicTrackName, fadeLength);
         this.#currentMusicTrackName = "";
       }
     }
   }
   
-  pauseMusic(fadeLength = 0) {
-    if (this.#musicTrackIsLoaded()) {
+  pauseBgm(fadeLength = 0) {
+    if (this.#bgmTrackIsLoaded()) {
       let track = this.#data.music[this.#currentMusicTrackName];
       
       if (
@@ -1693,25 +1693,25 @@ export class MintCrate {
           && fadeLength === 0
         )
       ) {
-        this.#stopMusicPlayback(this.#currentMusicTrackName, fadeLength, true);
+        this.#stopBgmPlayback(this.#currentMusicTrackName, fadeLength, true);
       }
     }
   }
   
-  resumeMusic(fadeLength = 0) {
-    if (this.#musicTrackIsLoaded()) {
+  resumeBgm(fadeLength = 0) {
+    if (this.#bgmTrackIsLoaded()) {
       let track = this.#data.music[this.#currentMusicTrackName];
       
       if (
         track.state === this.#MUSIC_STATES.PAUSING
         || track.state === this.#MUSIC_STATES.PAUSED
       ) {
-        this.#startMusicPlayback(this.#currentMusicTrackName, fadeLength, true);
+        this.#startBgmPlayback(this.#currentMusicTrackName, fadeLength, true);
       }
     }
   }
   
-  #startMusicPlayback(trackName, fadeLength, isResuming) {
+  #startBgmPlayback(trackName, fadeLength, isResuming) {
     let affectingFadeValue = (fadeLength > 0) ? (1 / fadeLength) : 0;
     
     let track = this.#data.music[trackName];
@@ -1744,7 +1744,7 @@ export class MintCrate {
     track.state = this.#MUSIC_STATES.PLAYING;
   }
   
-  #stopMusicPlayback(trackName, fadeLength, isPausing) {
+  #stopBgmPlayback(trackName, fadeLength, isPausing) {
     let affectingFadeValue = (fadeLength > 0) ? (1 / fadeLength) : 0;
     
     let track = this.#data.music[this.#currentMusicTrackName];
@@ -1771,7 +1771,7 @@ export class MintCrate {
     }
   }
   
-  setMusicVolume(newVolume) {
+  setBgmVolume(newVolume) {
     // Constrain volume value
     newVolume = MintMath.clamp(newVolume, 0, 1);
     
@@ -1785,13 +1785,12 @@ export class MintCrate {
     this.#masterVolume.bgm = newVolume;
   }
   
-  adjustMusicVolume(newVolume) {
-    this.setMusicVolume(this.#masterVolume.bgm + newVolume);
+  adjustBgmVolume(newVolume) {
+    this.setBgmVolume(this.#masterVolume.bgm + newVolume);
   }
   
-  setMusicPitch(newPitch) {
+  setBgmPitch(newPitch) {
     // Constrain pitch value
-    // TODO: Check these values
     newPitch = MintMath.clamp(newPitch, 0.1, 30);
     
     // Set music track source pitches
@@ -1804,21 +1803,11 @@ export class MintCrate {
     this.#masterBgmPitch = newPitch;
   }
   
-  adjustMusicPitch(newPitch) {
-    this.setMusicPitch(this.#masterBgmPitch + newPitch);
+  adjustBgmPitch(newPitch) {
+    this.setBgmPitch(this.#masterBgmPitch + newPitch);
   }
   
-  #musicIsPaused() {
-    let isPaused = false;
-    
-    if (this.#musicTrackIsLoaded()) {
-      isPaused = this.#data.music[this.#currentMusicTrackName].source.isPaused();
-    }
-    
-    return isPaused;
-  }
-  
-  #musicTrackIsLoaded() {
+  #bgmTrackIsLoaded() {
     return (this.#currentMusicTrackName !== "");
   }
   
@@ -1964,7 +1953,7 @@ export class MintCrate {
     
     // Clear out loaded music track name if it's come to its natural end
     if (
-      this.#musicTrackIsLoaded()
+      this.#bgmTrackIsLoaded()
       && this.#data.music[this.#currentMusicTrackName].source.hasEnded()
     ) {
       let track = this.#data.music[this.#currentMusicTrackName];
@@ -2527,22 +2516,43 @@ export class MintCrate {
         let img = data.img;
         let isMosaic = data.mosaic;
         let isNinePatch = data.ninePatch;
+        let offsetU = entity.getU();
+        let offsetV = entity.getV();
         
         // Draw backdrop image
-        if (!isMosaic && !isNinePatch) {
-          this.#backContext.drawImage(
-            img,
-            entity.getX() - this.#camera.x,
-            entity.getY() - this.#camera.y,
-            entity.getWidth(),
-            entity.getHeight()
-          );
-        } else if (isMosaic) {
-          this.#backContext.fillStyle = this.#data.backdrops[entity.getName() + '_mosaic'];
+        // Normal and mosaic backdrops
+        if (!isNinePatch) {
+          let scaleX = 1;
+          let scaleY = 1;
+          
+          if (!isMosaic) {
+            scaleX = entity.getWidth() / entity.getImageWidth();
+            scaleY = entity.getHeight() / entity.getImageHeight();
+          }
+          
+          this.#backContext.fillStyle = this.#data.backdrops[entity.getName()].pattern;
+          
+          // Translate to ensure texture's top-left coordinate is aligned
           this.#backContext.translate(entity.getX() - this.#camera.x, entity.getY() - this.#camera.y);
-          this.#backContext.fillRect(0, 0, 300, 300);
+          
+          // Scroll U/V
+          this.#backContext.translate(entity.getU() * scaleX, entity.getV() * scaleY);
+          
+          console.log(entity.getName(), scaleX, scaleY);
+          // Draw normal backdrop
+          if (!isMosaic) {
+            this.#backContext.scale(scaleX, scaleY);
+            this.#backContext.fillRect(-entity.getU(), -entity.getV(), entity.getImageWidth(), entity.getImageHeight());
+          // Draw mosaic backdrop
+          } else {
+            this.#backContext.fillRect(-entity.getU(), -entity.getV(), entity.getWidth(), entity.getHeight());
+          }
+          
+          // Reset transformation matrix
           this.#backContext.setTransform(1, 0, 0, 1, 0, 0);
-        } else if (isNinePatch) {
+        
+        // Ninepatch backdrop
+        } else {
           // TODO: This
         }
       

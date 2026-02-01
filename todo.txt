@@ -11,9 +11,12 @@
 [x] Mouse input
 [x] Test Active.angleLookAtPoint()
 [x] Test scaling
-[ ] Look through and take care of TODOs
-[ ] Background 9-patches
-[ ] Rewrite paragraph text parser as it has issues
+[/] Look through and take care of TODOs
+[ ] Background additions
+  [x] U/V Scroller
+  [ ] 9-patches
+[ ] Rewrite paragraph text parser as it has issues (Paragraph.setTextContent())
+[ ] Cross-browser testing
 
 - Long-term --------------------------------------------------------------------
 
