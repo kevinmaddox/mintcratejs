@@ -83,3 +83,21 @@ MintUtil.array.moveItemToEnd = function(arr, index) {
     arr.push(item);
   }
 };
+
+MintUtil.imageData = {};
+
+MintUtil.imageData.getColorAt = function(imageData, x, y) {
+  const r = y * (imageData.width * 4) + x * 4;
+  const g = r + 1;
+  const b = r + 2;
+  const a = r + 3;
+  
+  const color = [
+    imageData.data[r],
+    imageData.data[g],
+    imageData.data[b],
+    imageData.data[a],
+  ];
+  
+  return color;
+};

@@ -27,6 +27,9 @@ export class MintCrate {
   #backCanvas;
   #backContext;
   
+  #imageManipCanvas;
+  #imageManipContext;
+  
   #RES_PATHS;
   
   #BASE_WIDTH;
@@ -35,8 +38,6 @@ export class MintCrate {
   #SCREEN_SCALE;
   
   #colorKeys;
-  #colorKeyCanvas;
-  #colorKeyContext;
   
   #systemImages;
   
@@ -166,8 +167,8 @@ export class MintCrate {
     
     // RGB value sets and rendering context for color keying sprites
     this.#colorKeys = [];
-    this.#colorKeyCanvas = document.createElement('canvas');
-    this.#colorKeyContext = this.#colorKeyCanvas.getContext('2d');
+    this.#imageManipCanvas = document.createElement('canvas');
+    this.#imageManipContext = this.#imageManipCanvas.getContext('2d');
     
     // System graphics for debugging purposes
     this.#systemImages = {};
@@ -442,13 +443,13 @@ export class MintCrate {
   
   #colorKeyImage(img, isSystemResource = false) {
     return new Promise((resolve, reject) => {
-      this.#colorKeyCanvas.width = img.width;
-      this.#colorKeyCanvas.height = img.height;
-      this.#colorKeyContext.clearRect(0, 0, img.width, img.height);
+      this.#imageManipCanvas.width = img.width;
+      this.#imageManipCanvas.height = img.height;
+      this.#imageManipContext.clearRect(0, 0, img.width, img.height);
       
-      this.#colorKeyContext.drawImage(img, 0, 0);
+      this.#imageManipContext.drawImage(img, 0, 0);
       
-      let imgData = this.#colorKeyContext.getImageData(
+      let imgData = this.#imageManipContext.getImageData(
         0,
         0,
         img.width,
@@ -465,7 +466,6 @@ export class MintCrate {
       
       for (const color of colorKeys) {
         for (let i = 0; i < imgData.data.length; i += 4) {
-          
           if (
             imgData.data[i]   === color.r &&
             imgData.data[i+1] === color.g &&
@@ -479,11 +479,11 @@ export class MintCrate {
         }
       }
       
-      this.#colorKeyContext.putImageData(imgData, 0, 0);
+      this.#imageManipContext.putImageData(imgData, 0, 0);
       
       img.addEventListener('load', () => { resolve(img); });
       img.addEventListener('error', (err) => { reject(err); });
-      img.src = this.#colorKeyCanvas.toDataURL();
+      img.src = this.#imageManipCanvas.toDataURL();
     });
   }
   
@@ -662,10 +662,145 @@ export class MintCrate {
           ninePatch: item.ninePatch ?? false
         };
         
-        // if (item.mosaic) {
-          // this.#data.backdrops[`${item.name}_mosaic`] =
-            // this.#backContext.createPattern(img, "repeat");
-        // }
+        // Generate ninepatch clipping rectangles
+        if (item.ninePatch) {
+          /*
+            If the Backdrop is a ninepatch image, then we need to iterate
+            through the pixel data and determine where the patches begin and
+            end (their starting coordinate [x or y] and their dimension [width
+            or height]).
+            
+            Transparent pixels are dictated as the patch delimiter.
+            
+            There can be any number of transparent pixels between two patches,
+            so long as all the patches are axis-aligned and have dimensions
+            uniform to their respective rows/columns (everything on a row must
+            be the same height, and everything in a column must be the same
+            width).
+          */
+          
+          // Prepare image manipulation canvas
+          this.#imageManipCanvas.width = img.width;
+          this.#imageManipCanvas.height = img.height;
+          this.#imageManipContext.clearRect(0, 0, img.width, img.height);
+
+          this.#imageManipContext.drawImage(img, 0, 0);
+          
+          let imgData = this.#imageManipContext.getImageData(
+            0,
+            0,
+            img.width,
+            img.height
+          );
+          
+          // Figure out patch dimensions
+          let specs = {
+            horizontal: [{x: 0}],
+            vertical: [{y: 0}]
+          };
+          let measuringPatch = true;
+          let currentPatch = 0;
+          
+          const processPixel = function(color, coord, direction, axis, dim) {
+            let delimiterFound = (
+              color[0] === 255
+              && color[1] === 0
+              && color[2] === 255
+              && color[3] === 255
+            );
+            
+            if (!specs[direction][currentPatch]) {
+              specs[direction][currentPatch] = {};
+            }
+            
+            // We've found the start
+            if (!delimiterFound && measuringPatch === false) {
+              specs[direction][currentPatch][axis] = coord;
+              measuringPatch = true;
+            }
+            
+            // We've found the end
+            if (delimiterFound && measuringPatch === true) {
+              specs[direction][currentPatch][dim] = coord - specs[direction][currentPatch][axis];
+              measuringPatch = false;
+              currentPatch++;
+            }
+          }
+          
+          // Determine horizontal (x) dimensions
+          for (let x = 0; x < img.width; x++) {
+            let color = MintUtil.imageData.getColorAt(imgData, x, 0);
+            processPixel(color, x, 'horizontal', 'x', 'w');
+          }
+          
+          specs.horizontal[2].w = img.width - specs.horizontal[2].x;
+          
+          // Determine vertical (y) dimensions
+          measuringPatch = true;
+          currentPatch = 0;
+          for (let y = 0; y < img.height; y++) {
+            let color = MintUtil.imageData.getColorAt(imgData, 0, y);
+            processPixel(color, y, 'vertical', 'y', 'h');
+          }
+          
+          specs.vertical[2].h = img.height - specs.vertical[2].y;
+          
+          // Define/create and store clipping rects and patterns
+          const c = specs.horizontal;
+          const r = specs.vertical;
+          
+          // Define clipping rects
+          let corners = [
+            {x: c[0].x, y: r[0].y, width: c[0].w, height: r[0].h}, // TL
+            {x: c[2].x, y: r[0].y, width: c[2].w, height: r[0].h}, // TR
+            {x: c[0].x, y: r[2].y, width: c[0].w, height: r[2].h}, // BL
+            {x: c[2].x, y: r[2].y, width: c[2].w, height: r[2].h}  // BR
+          ];
+          
+          // Create patterns
+          let patterns = [];
+          
+          const createPattern = (img, x, y, width, height) => {
+            let canvas = new OffscreenCanvas(width, height);
+            let context = canvas.getContext('2d');
+            context.imageSmoothingEnabled = false;
+            
+            context.drawImage(
+              img,
+              x,
+              y,
+              width,
+              height,
+              0,
+              0,
+              width,
+              height
+            );
+            
+            let pattern = this.#backContext.createPattern(canvas, "repeat");
+            
+            return pattern;
+          }
+          
+          // Top
+          patterns[0] = createPattern(img, c[1].x, r[0].y, c[1].w, r[0].h);
+          // Left
+          patterns[1] = createPattern(img, c[0].x, r[1].y, c[0].w, r[1].h);
+          // Middle
+          patterns[2] = createPattern(img, c[1].x, r[1].y, c[1].w, r[1].h);
+          // Right
+          patterns[3] = createPattern(img, c[2].x, r[1].y, c[2].w, r[1].h);
+          // Bottom
+          patterns[4] = createPattern(img, c[1].x, r[2].y, c[1].w, r[2].h);
+          
+          // Store ninepatch data
+          this.#data.backdrops[item.name].ninepatchData = {
+            corners: corners,
+            patterns: patterns,
+            minimumWidth:  c[0].w + c[1].w + c[2].w,
+            minimumHeight: r[0].h + r[1].h + r[2].h
+          };
+        }
       }
       
       this.#loadFonts();
@@ -2512,40 +2647,43 @@ export class MintCrate {
       // Draw backdrops
       } else if (entityType === "backdrop") {
         // Get backdrop image and rendering properties
-        let data = this.#data.backdrops[entity.getName()];
-        let img = data.img;
-        let isMosaic = data.mosaic;
-        let isNinePatch = data.ninePatch;
-        let offsetU = entity.getU();
-        let offsetV = entity.getV();
+        let data      = this.#data.backdrops[entity.getName()];
+        let img       = data.img;
+        let x         = entity.getX();
+        let y         = entity.getY();
+        let scaleX    = entity.getScaleX();
+        let scaleY    = entity.getScaleY();
+        let u         = entity.getU();
+        let v         = entity.getV();
+        let imgWidth  = entity.getImageWidth();
+        let imgHeight = entity.getImageHeight();
+        let width     = entity.getWidth();
+        let height    = entity.getHeight();
         
         // Draw backdrop image
         // Normal and mosaic backdrops
-        if (!isNinePatch) {
-          let scaleX = 1;
-          let scaleY = 1;
+        if (!data.ninePatch) {
           
-          if (!isMosaic) {
-            scaleX = entity.getWidth() / entity.getImageWidth();
-            scaleY = entity.getHeight() / entity.getImageHeight();
-          }
-          
-          this.#backContext.fillStyle = this.#data.backdrops[entity.getName()].pattern;
+          // Retrieve pattern
+          this.#backContext.fillStyle = data.pattern;
           
           // Translate to ensure texture's top-left coordinate is aligned
-          this.#backContext.translate(entity.getX() - this.#camera.x, entity.getY() - this.#camera.y);
+          this.#backContext.translate(x - this.#camera.x, y - this.#camera.y);
           
-          // Scroll U/V
-          this.#backContext.translate(entity.getU() * scaleX, entity.getV() * scaleY);
-          
-          console.log(entity.getName(), scaleX, scaleY);
           // Draw normal backdrop
-          if (!isMosaic) {
+          if (!data.mosaic) {
+            // Scroll U/V
+            this.#backContext.translate(u * scaleX, v * scaleY);
+            // Scale
             this.#backContext.scale(scaleX, scaleY);
-            this.#backContext.fillRect(-entity.getU(), -entity.getV(), entity.getImageWidth(), entity.getImageHeight());
+            // Draw
+            this.#backContext.fillRect(-u, -v, imgWidth, imgHeight);
           // Draw mosaic backdrop
           } else {
-            this.#backContext.fillRect(-entity.getU(), -entity.getV(), entity.getWidth(), entity.getHeight());
+            // Scroll U/V
+            this.#backContext.translate(u, v);
+            // Draw
+            this.#backContext.fillRect(-u, -v, width, height);
           }
           
           // Reset transformation matrix
@@ -2553,7 +2691,107 @@ export class MintCrate {
         
         // Ninepatch backdrop
         } else {
-          // TODO: This
+          const corners  = data.ninepatchData.corners;
+          const patterns = data.ninepatchData.patterns;
+          
+          // Draw corners
+          // Top-left
+          this.#backContext.drawImage(
+            img,
+            corners[0].x,
+            corners[0].y,
+            corners[0].width,
+            corners[0].height,
+            x - this.#camera.x,
+            y - this.#camera.y,
+            corners[0].width,
+            corners[0].height
+          );
+          
+          // Top-right
+          this.#backContext.drawImage(
+            img,
+            corners[1].x,
+            corners[1].y,
+            corners[1].width,
+            corners[1].height,
+            x + width - corners[1].width - this.#camera.x,
+            y - this.#camera.y,
+            corners[1].width,
+            corners[1].height
+          );
+          
+          // Bottom-left
+          this.#backContext.drawImage(
+            img,
+            corners[2].x,
+            corners[2].y,
+            corners[2].width,
+            corners[2].height,
+            x - this.#camera.x,
+            y + height - corners[2].height - this.#camera.y,
+            corners[2].width,
+            corners[2].height
+          );
+          
+          // Bottom-right
+          this.#backContext.drawImage(
+            img,
+            corners[3].x,
+            corners[3].y,
+            corners[3].width,
+            corners[3].height,
+            x + width - corners[3].width - this.#camera.x,
+            y + height - corners[3].height - this.#camera.y,
+            corners[3].width,
+            corners[3].height
+          );
+          
+          // Draw patterns
+          // Top
+          this.#drawNinepatchPattern(
+            patterns[0],
+            x + corners[0].width - this.#camera.x,
+            y - this.#camera.y,
+            width - corners[1].width - corners[0].width,
+            corners[0].height
+          );
+          
+          // Left
+          this.#drawNinepatchPattern(
+            patterns[1],
+            x - this.#camera.x,
+            y + corners[0].height - this.#camera.y,
+            corners[0].width,
+            height - corners[1].height - corners[0].height
+          );
+          
+          // Middle
+          this.#drawNinepatchPattern(
+            patterns[2],
+            x + corners[0].width - this.#camera.x,
+            y + corners[0].height - this.#camera.y,
+            width - corners[1].width - corners[0].width,
+            height - corners[1].height - corners[0].height
+          );
+          
+          // Right
+          this.#drawNinepatchPattern(
+            patterns[3],
+            x + width - corners[1].width - this.#camera.x,
+            y + corners[0].height - this.#camera.y,
+            corners[1].width,
+            height - corners[1].height - corners[0].height
+          );
+          
+          // Bottom
+          this.#drawNinepatchPattern(
+            patterns[4],
+            x + corners[0].width - this.#camera.x,
+            y + height - corners[2].height - this.#camera.y,
+            width - corners[1].width - corners[0].width,
+            corners[2].height
+          );
         }
       
       // Draw paragraphs
@@ -2569,6 +2807,20 @@ export class MintCrate {
         );
       }
     }
+  }
+  
+  #drawNinepatchPattern(pattern, x, y, width, height) {
+    // Get pattern
+    this.#backContext.fillStyle = pattern;
+    
+    // Translate to ensure texture's top-left coordinate is aligned
+    this.#backContext.translate(x, y);
+    
+    // Draw pattern
+    this.#backContext.fillRect(0, 0, width, height);
+    
+    // Reset transformation matrix
+    this.#backContext.setTransform(1, 0, 0, 1, 0, 0);
   }
   
   #drawText(

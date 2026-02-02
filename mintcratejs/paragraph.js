@@ -52,6 +52,7 @@ export class Paragraph extends Entity {
     this.#alignment = alignment;
     this.#textContent = "";
     this.#textLines = [];
+    this.#hyphenate = hyphenate;
   }
   
   getTextContent() {
@@ -70,8 +71,9 @@ export class Paragraph extends Entity {
     textContent = textContent.replaceAll("\n\r", "\n");
     textContent = textContent.replaceAll("\r", "\n");
     
-    // Prepare to parse text into lines
+    // Alias formatting vars for convenience
     let wordWrap = this.#wordWrap;
+    let hyphenate = this.#hyphenate;
     let maxCharsPerLine = this.#maxCharsPerLine;
     
     // Split words into array
@@ -95,53 +97,76 @@ export class Paragraph extends Entity {
     // Text in Paragraph objects is stored as pre-formatted lines
     // Basically, we're trying to fit as many words as possible into each line
     let strLines = [""];
+    let line = "";
     
-    for (let i = 0; i < words.length; i++) {
+    let maxParses = 0;
+    let i = 0;
+    while (i < words.length) {
       let word = words[i];
+      
+      let lineNum = strLines.length - 1;
+      let line = strLines[lineNum];
+      let availableChars = maxCharsPerLine - line.length;
       
       // Force a new line if we've hit a line break
       if (word === "\n") {
         strLines.push("");
-      // If we're not going to exceed max chars allowed, then concat the word
-      } else if ((strLines[strLines.length-1] + word).length <= maxCharsPerLine) {
-        strLines[strLines.length-1] += word;
-      // If we are going to exceed, and either the word is too long or wordwrap
-      // is not enabled, then break the word
-      } else if (word.length > maxCharsPerLine || !wordWrap) {
-        let spaceAvailable = maxCharsPerLine - strLines[strLines.length-1].length;
-        let wordLeft       = word.substring(0, spaceAvailable);
-        let wordRight      = word.substring(spaceAvailable, word.length);
-        
-        strLines[strLines.length-1] += wordLeft;
-        strLines.push(wordRight);
+      // If we won't exceed max chars allowed, then append the word to the line
+      } else if (word.length <= availableChars) {
+        line += word;
+        // Add a space
+        if (
+          availableChars - word.length >= 1
+          && words[i+1] !== "\n"
+        ) {
+          line += " ";
+        }
+      // If we are going to exceed max chars allowed, break the word/line
       } else {
-        strLines.push(word);
+        // Break word...
+        if (word.length > maxCharsPerLine || !wordWrap) {
+          let left  = word.substring(0, availableChars);
+          let right = word.substring(availableChars, word.length);
+          
+          // Handle hyphenation
+          if (hyphenate && availableChars >= 2) {
+            right = left.slice(-1) + right;
+            left = left.slice(0, -1) + "-";
+          }
+          
+          line += left;
+          words.splice(i+1, 0, right);
+        }
+        // ...or Break line
+        else {
+          strLines.push("");
+          continue;
+        }
       }
       
-      // Add space after word that was inserted
+      // Story modified line back into array
+      strLines[lineNum] = line;
+      
+      // Create a new line if we've hit the char line limit
       if (
-        word !== "\n"
-        && words[i+1] !== undefined
-        && (strLines[strLines.length-1] + words[i+1]).length <= maxCharsPerLine
-        && words[i+1] !== "\n"
+        line.length === maxCharsPerLine
+        && typeof words[i+1] !== "undefined"
       ) {
-        strLines[strLines.length-1] += " "
+        strLines.push("");
       }
       
-      // Keep breaking remainder onto new lines
-      while ((strLines[strLines.length-1]).length > maxCharsPerLine) {
-        let line = strLines[strLines.length-1];
-        let lineLeft = line.substring(0, maxCharsPerLine);
-        let lineRight = line.substring(maxCharsPerLine, line.length);
-        
-        strLines[strLines.length-1] = lineLeft;
-        
-        strLines.push(lineRight);
+      i++;
+      
+      maxParses++;
+      if (maxParses > 9999) {
+        console.log('PARSING ERROR!');
+        break;
+        // TODO: Throw some kind of error
       }
     }
     
     // Store formatted lines
-    this.#textLines = strLines
+    this.#textLines = strLines;
   }
   
   getGlyphWidth() {

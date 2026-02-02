@@ -37,7 +37,6 @@ export class EntityFactory {
   
   addActive(name, x, y) {
     // Retrieve active's collider data (if available)
-    console.log(this.#data.actives[name]);
     let collider = this.#data.actives[name].collider ?? {};
     
     // Retrieve list of animations for the active (if available)
@@ -48,7 +47,6 @@ export class EntityFactory {
     
     // Retrieve initial animation to play upon creation (if available)
     let initialAnimationName = this.#data.actives[name].initialAnimationName ?? "";
-    console.log(this.#data.actives[name]);
     let animation = false;
     if (initialAnimationName) {
       animation = this.#data.actives[name].animations[initialAnimationName];
@@ -79,7 +77,25 @@ export class EntityFactory {
   }
   
   addBackdrop(name, x, y, options = {}) {
-    let img = this.#data.backdrops[name].img;
+    let data = this.#data.backdrops[name];
+    let img = data.img;
+    
+    options.width = options.width ?? img.width;
+    options.height = options.height ?? img.height;
+    
+    let scaleX = 1;
+    let scaleY = 1;
+    if (!data.mosaic) {
+      scaleX = options.width / img.width;
+      scaleY = options.height / img.height;
+    }
+    
+    let type = Backdrop.TYPES.NORMAL;
+    if (data.mosaic) {
+      type = Backdrop.TYPES.MOSAIC;
+    } else if (data.ninepatch) {
+      type = Backdrop.TYPES.NINEPATCH;
+    }
     
     let backdrop = new Backdrop(
       name,
@@ -88,10 +104,15 @@ export class EntityFactory {
       this.#drawOrders,
       x,
       y,
+      type,
       options.width ?? img.width,
       options.height ?? img.height,
       img.width,
-      img.height
+      img.height,
+      scaleX,
+      scaleY,
+      (data.ninepatchData ? data.ninepatchData.minimumWidth  : 0),
+      (data.ninepatchData ? data.ninepatchData.minimumHeight : 0)
     );
     
     this.#linearInstanceLists.backdrops.push(backdrop);

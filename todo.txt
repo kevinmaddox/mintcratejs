@@ -1,25 +1,29 @@
 - Short-term -------------------------------------------------------------------
-[x] Check crossfades... the fading-out song seems to fade quicker than the
-    fading-in song
-[x] The pitch appears to change the time offset of a track... can we calculate
-    the correct position when resuming it? Perhaps multiplying by the pitch
-    factor?
-[x] Remaining debug graphics
-[x] Ensure that the 1-pixel sprite flip offset from Love2D doesn't happen here
-[x] Verify that origin point and collider are being drawn at the right positions
-[x] Collisions
-[x] Mouse input
-[x] Test Active.angleLookAtPoint()
-[x] Test scaling
-[/] Look through and take care of TODOs
-[ ] Background additions
-  [x] U/V Scroller
-  [ ] 9-patches
-[ ] Rewrite paragraph text parser as it has issues (Paragraph.setTextContent())
 [ ] Cross-browser testing
+[x] Rewrite paragraph text parser as it has issues (Paragraph.setTextContent())
+[x] Background additions
+  [x] U/V Scroller
+  [x] 9-patches
+  [x] Iron out bugs
+[/] Look through and take care of TODOs
+[x] Test scaling
+[x] Test Active.angleLookAtPoint()
+[x] Mouse input
+[x] Collisions
+[x] Verify that origin point and collider are being drawn at the right positions
+[x] Ensure that the 1-pixel sprite flip offset from Love2D doesn't happen here
+[x] Remaining debug graphics
+    factor?
+    the correct position when resuming it? Perhaps multiplying by the pitch
+[x] The pitch appears to change the time offset of a track... can we calculate
+    fading-in song
+[x] Check crossfades... the fading-out song seems to fade quicker than the
 
 - Long-term --------------------------------------------------------------------
-
+[x] (currently none)
 
 - Ponderings -------------------------------------------------------------------
-- Should we halt game logic when the fade delay of a room transition is hit?
+[ ] Should we halt game logic when the fade delay of a room transition is hit?
+
+- Outstanding Bugs -------------------------------------------------------------
+[x] Backdrop: Shifting the UV, and then scaling it, will cause it to move
