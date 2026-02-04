@@ -101,7 +101,6 @@ export class MintCrate {
   
   #loadingQueue;
   #data;
-  #instanceCollection;
   #tiles;
   #linearInstanceLists;
   #drawOrders;
@@ -278,8 +277,6 @@ export class MintCrate {
     
     this.#tiles = [];
     
-    this.#instanceCollection = {};
-    
     this.#linearInstanceLists = {
       actives    : [],
       backdrops  : [],
@@ -293,12 +290,11 @@ export class MintCrate {
     
     // Entity creation
     this.#entityCreator = {
-      foreground: new EntityFactory(this.#data, this.#instanceCollection, this.#linearInstanceLists, this.#drawOrders.foreground),
-      background: new EntityFactory(this.#data, this.#instanceCollection, this.#linearInstanceLists, this.#drawOrders.background)
+      foreground: new EntityFactory(this.#data, this.#linearInstanceLists, this.#drawOrders.foreground),
+      background: new EntityFactory(this.#data, this.#linearInstanceLists, this.#drawOrders.background)
     };
     
     // Aliases for easy user access
-    this.obj      = this.#instanceCollection;
     this.bg       = this.#entityCreator.background;
     this.fg       = this.#entityCreator.foreground;
     this.roomList = this.#ROOM_LIST;
@@ -1187,7 +1183,6 @@ export class MintCrate {
   
   #performRoomChange(room, persistAudio) {
     // Wipe current entity instances
-    this.#instanceCollection = {};
     for (const key in this.#linearInstanceLists) {
       this.#linearInstanceLists[key].length = 0;
     }
@@ -1951,6 +1946,10 @@ export class MintCrate {
     this.setBgmVolume(this.#masterVolume.bgm + newVolume);
   }
   
+  getBgmVolume() {
+    return this.#masterVolume.bgm;
+  }
+  
   setBgmPitch(newPitch) {
     // Constrain pitch value
     newPitch = MintMath.clamp(newPitch, 0.1, 30);
@@ -1967,6 +1966,24 @@ export class MintCrate {
   
   adjustBgmPitch(newPitch) {
     this.setBgmPitch(this.#masterBgmPitch + newPitch);
+  }
+  
+  setSfxVolume(newVolume) {
+    // Constrain volume value
+    newVolume = MintMath.clamp(newVolume, 0, 1);
+    
+    // Set all sfx source volumes
+    for (const soundName in this.#data.sounds) {
+      let sound = this.#data.sounds[soundName];
+      sound.source.setVolume(newVolume);
+    }
+    
+    // Store volume value
+    this.#masterVolume.sfx = newVolume;
+  }
+  
+  getSfxVolume() {
+    return this.#masterVolume.sfx;
   }
   
   #bgmTrackIsLoaded() {

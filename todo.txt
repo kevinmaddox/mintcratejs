@@ -1,9 +1,9 @@
 - Short-term -------------------------------------------------------------------
-[ ] Remove instance collection -- user should be managing their own data
 [ ] Add a default collider to Backdrops and make them collision-testable
   - testActiveCollision() should become testObjectCollision()
 [ ] Add game title param, show it during loading and debug overlays
 [ ] Cross-browser testing
+[x] Remove instance collection -- user should be managing their own data
 [x] Rewrite paragraph text parser as it has issues (Paragraph.setTextContent())
 [x] Background additions
   [x] U/V Scroller
@@ -24,7 +24,10 @@
 [x] Check crossfades... the fading-out song seems to fade quicker than the
 
 - Long-term --------------------------------------------------------------------
-[x] (currently none)
+[ ] General cleanup and organization
+[ ] Function comments
+[ ] Function validation
+[ ] Docs & tutorials
 
 - Ponderings -------------------------------------------------------------------
 [ ] Should we halt game logic when the fade delay of a room transition is hit?

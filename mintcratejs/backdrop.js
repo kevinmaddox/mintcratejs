@@ -40,7 +40,6 @@ export class Backdrop extends Entity {
   
   constructor(
     name,
-    instances,
     linearInstanceList,
     drawOrder,
     x,
@@ -55,7 +54,7 @@ export class Backdrop extends Entity {
     minimumWidth,
     minimumHeight
   ) {
-    super("backdrop", name, instances, linearInstanceList, drawOrder, x, y);
+    super("backdrop", name, linearInstanceList, drawOrder, x, y);
     
     this.#type = type;
     

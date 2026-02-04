@@ -17,7 +17,6 @@ export class Entity {
   #entityType;
   #name;
   
-  #instances;
   #linearInstanceList;
   #drawOrder;
   
@@ -32,14 +31,14 @@ export class Entity {
   // Constructor
   //----------------------------------------------------------------------------
   
-  constructor(entityType, name, instances, linearInstanceList, drawOrder, x, y) {
+  constructor(entityType, name, linearInstanceList, drawOrder, x, y) {
     this.#entityType = entityType;
     this.#name = name;
     
-    this.#instances = instances;
     this.#linearInstanceList = linearInstanceList;
     this.#drawOrder = drawOrder;
     
+    this.#wasDestroyed = false;
     this.#isVisible = true;
     this.#opacity = 1.0;
     
@@ -56,9 +55,6 @@ export class Entity {
   }
   
   destroy() {
-    // Remove entity from Mintcrate's instance list
-    MintUtil.deleteInCollection(this, this.#instances);
-    
     // Remove entity from MintCrate's linear instance list
     let linearInstanceIndex =
       this.#linearInstanceList.findIndex((entity) => entity === this);
@@ -67,7 +63,13 @@ export class Entity {
     // Remove entity from MintCrate's draw order table
     let drawIndex = this.#drawOrder.findIndex((entity) => entity === this);
     this.#drawOrder.splice(drawIndex, 1);
-    console.log(this.#instances);
+    
+    // Mark entity as having been deleted
+    this.#wasDestroyed = true;
+  }
+  
+  exists() {
+    return (!this.#wasDestroyed);
   }
   
   getName() {

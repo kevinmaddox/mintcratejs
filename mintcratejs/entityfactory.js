@@ -16,7 +16,6 @@ export class EntityFactory {
   //----------------------------------------------------------------------------
   
   #data;
-  #instanceCollection;
   #linearInstanceLists;
   #drawOrders
   
@@ -24,9 +23,8 @@ export class EntityFactory {
   // Constructor
   //----------------------------------------------------------------------------
   
-  constructor(data, instanceCollection, linearInstanceLists, drawOrders) {
+  constructor(data, linearInstanceLists, drawOrders) {
     this.#data = data;
-    this.#instanceCollection = instanceCollection;
     this.#linearInstanceLists = linearInstanceLists;
     this.#drawOrders = drawOrders;
   }
@@ -54,7 +52,6 @@ export class EntityFactory {
     
     let active = new Active(
       name,
-      this.#instanceCollection,
       this.#linearInstanceLists.backdrops,
       this.#drawOrders,
       x,
@@ -99,7 +96,6 @@ export class EntityFactory {
     
     let backdrop = new Backdrop(
       name,
-      this.#instanceCollection,
       this.#linearInstanceLists.backdrops,
       this.#drawOrders,
       x,
@@ -128,7 +124,6 @@ export class EntityFactory {
     // Create new Paragraph
     let paragraph = new Paragraph(
       name,
-      this.#instanceCollection,
       this.#linearInstanceLists.paragraphs,
       this.#drawOrders,
       x,

@@ -20,7 +20,7 @@ export class Button {
     this.height = height;
     
     console.log(mint);
-    mint.obj.btnBackdrops = {
+    this.btnBackdrops = {
       activeUp:       mint.bg.addBackdrop('button-active-up',     x, y, {ninePatch: true, width: width, height: height}),
       activeDown:     mint.bg.addBackdrop('button-active-down',   x, y, {ninePatch: true, width: width, height: height}),
       inactiveUp:     mint.bg.addBackdrop('button-inactive-down', x, y, {ninePatch: true, width: width, height: height}),
@@ -69,7 +69,7 @@ export class Button {
     }
     
     
-    for (const btnBackdrop of Object.values(mint.obj.btnBackdrops)) {
+    for (const btnBackdrop of Object.values(this.btnBackdrops)) {
       btnBackdrop.setVisibility(false);
     }
     
@@ -84,16 +84,16 @@ export class Button {
       }
       
       if (this.enabled) {
-        mint.obj.btnBackdrops.activeDown.setVisibility(true);
+        this.btnBackdrops.activeDown.setVisibility(true);
       } else {
-        mint.obj.btnBackdrops.inactiveDown.setVisibility(true);
+        this.btnBackdrops.inactiveDown.setVisibility(true);
       }
     } else {
       this.isDown = false;
       if (this.enabled) {
-        mint.obj.btnBackdrops.activeUp.setVisibility(true);
+        this.btnBackdrops.activeUp.setVisibility(true);
       } else {
-        mint.obj.btnBackdrops.inactiveUp.setVisibility(true);
+        this.btnBackdrops.inactiveUp.setVisibility(true);
       }
     }
   }

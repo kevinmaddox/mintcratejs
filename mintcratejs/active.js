@@ -46,7 +46,6 @@ export class Active extends Entity {
   
   constructor(
     name,
-    instances,
     linearInstanceList,
     drawOrder,
     x,
@@ -61,7 +60,7 @@ export class Active extends Entity {
     initialAnimationName,
     initialAnimation
   ) {
-    super("active", name, instances, linearInstanceList, drawOrder, x, y);
+    super("active", name, linearInstanceList, drawOrder, x, y);
     
     // Initialize rotation values
     this.#angle         = 0;

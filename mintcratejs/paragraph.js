@@ -29,7 +29,6 @@ export class Paragraph extends Entity {
   
   constructor(
     name,
-    instances,
     linearInstanceList,
     drawOrder,
     x,
@@ -42,7 +41,7 @@ export class Paragraph extends Entity {
     alignment,
     hyphenate
   ) {
-    super("paragraph", name, instances, linearInstanceList, drawOrder, x, y);
+    super("paragraph", name, linearInstanceList, drawOrder, x, y);
     
     this.#glyphWidth = glyphWidth;
     this.#glyphHeight = glyphHeight;

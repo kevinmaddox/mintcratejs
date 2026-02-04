@@ -49,6 +49,10 @@ mint.inputs[0].mapInput('d', 'KeyD');
 
 mint.inputs[0].mapInput('j', 'KeyJ');
 
+mint.globals.enteringFromSplashScreen = true;
+mint.globals.musicOn = true;
+mint.globals.sfxOn = true;
+
 // Game Object Definitions -----------------------------------------------------
 
 mint.defineActives([
