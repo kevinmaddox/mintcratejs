@@ -142,7 +142,7 @@ mint.defineFonts([
 
 mint.defineMusic([
   {name: 'select-your-whatever-2k15', loop: true, loopStart: 51.206, loopEnd: 92.810},
-  // {name: 'tangent'}
+  {name: 'tangent', loop: true, loopStart: 29.298, loopEnd: 112.018}
 ]);
 
 mint.defineSounds([

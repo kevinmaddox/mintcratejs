@@ -34,3 +34,7 @@
 
 - Outstanding Bugs -------------------------------------------------------------
 [x] Backdrop: Shifting the UV, and then scaling it, will cause it to move
+[ ] Make it so that, when clicking back into the screen when it's idle, the
+    click event does not pass through (and click buttons, etc.)
+[ ] Ensure the inactive pause screen text can fit most reasonable sizes
+  - Will need a smaller font for very tiny resolutions

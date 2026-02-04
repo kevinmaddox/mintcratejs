@@ -2573,17 +2573,27 @@ export class MintCrate {
     if (this.#showRoomInfo) {
       this.#drawText(
         [
-          this.#roomData.name,
-          this.#roomData.width +
-            " x " +
-            this.#roomData.height,
           "ACTS: " + this.#linearInstanceLists.actives.length,
           "BAKS: " + this.#linearInstanceLists.backdrops.length,
           "TEXT: " + this.#linearInstanceLists.paragraphs.length
         ],
         this.#data.fonts['system_counter'],
         0,
-        this.#BASE_HEIGHT - (5 * this.#data.fonts['system_counter'].charHeight)
+        this.#BASE_HEIGHT - (3 * this.#data.fonts['system_counter'].charHeight)
+      );
+      
+      this.#drawText(
+        [
+          this.#roomData.width +
+            " x " +
+            this.#roomData.height,
+          this.#roomData.name
+        ],
+        this.#data.fonts['system_counter'],
+        this.#BASE_WIDTH,
+        this.#BASE_HEIGHT - (2 * this.#data.fonts['system_counter'].charHeight),
+        0,
+        "right"
       );
     }
     
