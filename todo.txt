@@ -1,4 +1,8 @@
 - Short-term -------------------------------------------------------------------
+[ ] Remove instance collection -- user should be managing their own data
+[ ] Add a default collider to Backdrops and make them collision-testable
+  - testActiveCollision() should become testObjectCollision()
+[ ] Add game title param, show it during loading and debug overlays
 [ ] Cross-browser testing
 [x] Rewrite paragraph text parser as it has issues (Paragraph.setTextContent())
 [x] Background additions

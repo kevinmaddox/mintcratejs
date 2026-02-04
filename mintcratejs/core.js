@@ -304,6 +304,9 @@ export class MintCrate {
     this.roomList = this.#ROOM_LIST;
     this.inputs   = this.#inputHandlers;
     
+    // Container for user to store global data in
+    this.globals = {};
+    
     // Prepare canvas.
     this.#clearCanvas();
     this.#renderFrame();
@@ -1140,6 +1143,18 @@ export class MintCrate {
   }
   
   // ---------------------------------------------------------------------------
+  // Methods for window size and graphics scale management
+  // ---------------------------------------------------------------------------
+  
+  getBaseWidth() {
+    return this.#BASE_WIDTH;
+  }
+  
+  getBaseHeight() {
+    return this.#BASE_HEIGHT;
+  }
+  
+  // ---------------------------------------------------------------------------
   // Room management
   // ---------------------------------------------------------------------------
   
@@ -1643,6 +1658,18 @@ export class MintCrate {
     
     // Return result of hover test
     return over;
+  }
+  
+  mouseOverRegion(x, y, width, height) {
+    let mouseX   = this.#mousePositions.globalX;
+    let mouseY   = this.#mousePositions.globalY;
+    
+    return (
+      mouseX >= x
+      && mouseY >= y
+      && mouseX < (x + width)
+      && mouseY < (y + height)
+    );
   }
   
   // ---------------------------------------------------------------------------
@@ -2763,7 +2790,7 @@ export class MintCrate {
             x - this.#camera.x,
             y + corners[0].height - this.#camera.y,
             corners[0].width,
-            height - corners[1].height - corners[0].height
+            height - corners[2].height - corners[0].height
           );
           
           // Middle
@@ -2772,7 +2799,7 @@ export class MintCrate {
             x + corners[0].width - this.#camera.x,
             y + corners[0].height - this.#camera.y,
             width - corners[1].width - corners[0].width,
-            height - corners[1].height - corners[0].height
+            height - corners[2].height - corners[0].height
           );
           
           // Right
@@ -2781,7 +2808,7 @@ export class MintCrate {
             x + width - corners[1].width - this.#camera.x,
             y + corners[0].height - this.#camera.y,
             corners[1].width,
-            height - corners[1].height - corners[0].height
+            height - corners[2].height - corners[0].height
           );
           
           // Bottom

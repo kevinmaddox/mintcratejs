@@ -118,6 +118,7 @@ export class Paragraph extends Entity {
         if (
           availableChars - word.length >= 1
           && words[i+1] !== "\n"
+          && words[i+1]
         ) {
           line += " ";
         }
