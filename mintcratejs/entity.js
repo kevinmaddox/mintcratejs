@@ -50,10 +50,6 @@ export class Entity {
   // Methods for management
   // ---------------------------------------------------------------------------
   
-  #getInstanceIndex() {
-    // this.#
-  }
-  
   destroy() {
     // Remove entity from MintCrate's linear instance list
     let linearInstanceIndex =

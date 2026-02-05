@@ -3,7 +3,6 @@
 export class Splash {
   load(engine) {
     this.mint = engine;
-    
     let mint = this.mint;
     
     mint.setRoomBackgroundColor(255, 255, 255);

@@ -5,6 +5,10 @@
 
 export let MintUtil = {};
 
+MintUtil.randomChoice = function(...items) {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
 MintUtil.rgbToString = function(r, g, b, a = null) {
   if (a === null) {
     return `rgb(${r}, ${g}, ${b})`;

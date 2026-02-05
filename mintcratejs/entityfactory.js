@@ -52,7 +52,7 @@ export class EntityFactory {
     
     let active = new Active(
       name,
-      this.#linearInstanceLists.backdrops,
+      this.#linearInstanceLists.actives,
       this.#drawOrders,
       x,
       y,

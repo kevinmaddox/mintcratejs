@@ -19,15 +19,14 @@ export class Button {
     this.width  = width;
     this.height = height;
     
-    console.log(mint);
     this.btnBackdrops = {
-      activeUp:       mint.bg.addBackdrop('button-active-up',     x, y, {ninePatch: true, width: width, height: height}),
-      activeDown:     mint.bg.addBackdrop('button-active-down',   x, y, {ninePatch: true, width: width, height: height}),
-      inactiveUp:     mint.bg.addBackdrop('button-inactive-down', x, y, {ninePatch: true, width: width, height: height}),
-      inactiveDown:   mint.bg.addBackdrop('button-inactive-down', x, y, {ninePatch: true, width: width, height: height})
+      activeUp:       mint.fg.addBackdrop('button-active-up',     x, y, {ninePatch: true, width: width, height: height}),
+      activeDown:     mint.fg.addBackdrop('button-active-down',   x, y, {ninePatch: true, width: width, height: height}),
+      inactiveUp:     mint.fg.addBackdrop('button-inactive-down', x, y, {ninePatch: true, width: width, height: height}),
+      inactiveDown:   mint.fg.addBackdrop('button-inactive-down', x, y, {ninePatch: true, width: width, height: height})
     };
     
-    this.textActive = mint.bg.addParagraph('ui-main', 0, 0, textContent, {alignment: 'center'});
+    this.textActive = mint.fg.addParagraph('ui-main', 0, 0, textContent, {alignment: 'center'});
     this.textActive.setX(x + width / 2);
     this.textActive.setY(
       y + (height / 2) - (this.textActive.getGlyphHeight() / 2)

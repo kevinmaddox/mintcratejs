@@ -8,32 +8,21 @@ import { MintCrate } from "../../mintcratejs/core.js";
 // Levels
 import { Splash } from "./rooms/splash.js";
 import { Title }  from "./rooms/title.js";
-// import { Game }   from "./rooms/game.js";
+import { Game }   from "./rooms/game.js";
 
 let roomList = [
+  Game,
   Title,
   Splash,
-  // Game
 ];
 
 // MintCrate Initialization ----------------------------------------------------
 
 var mint = new MintCrate("mintcrate-target", 240, 160, roomList, {
   screenScale: 1,
-  // devMode: true
-  devMode: false
+  devMode: true
+  // devMode: false
 });
-
-mint.setFpsVisibility(true);
-mint.setRoomInfoVisibility(true);
-
-mint.setTilemapCollisionMaskVisibility(true);
-mint.setTilemapBehaviorValueVisibility(true);
-
-mint.setActiveCollisionMaskVisibility(true);
-mint.setOriginPointVisibility(true);
-mint.setActionPointVisibility(true);
-mint.setActiveInfoVisibility(true);
 
 mint.defineColorKeys([
   {r:  134, g: 171, b: 125},
@@ -49,9 +38,23 @@ mint.inputs[0].mapInput('d', 'KeyD');
 
 mint.inputs[0].mapInput('j', 'KeyJ');
 
+mint.inputs[0].mapInput('1', 'Digit1');
+mint.inputs[0].mapInput('2', 'Digit2');
+
 mint.globals.enteringFromSplashScreen = true;
 mint.globals.musicOn = true;
 mint.globals.sfxOn = true;
+mint.globals.highScore = 0;
+
+mint.setGlobalUpdateFunction(() => {
+  if (mint.inputs[0].pressed('1')) {
+    mint.showAllDebugOverlays();
+  }
+  
+  if (mint.inputs[0].pressed('2')) {
+    mint.stopBgm();
+  }
+});
 
 // Game Object Definitions -----------------------------------------------------
 

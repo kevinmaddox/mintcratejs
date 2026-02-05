@@ -90,6 +90,7 @@ export class MintCrate {
   #roomData;
   #isChangingRooms;
   #roomHasChanged;
+  #globalUpdateFunction;
   
   #audioContext;
   #MUSIC_FADE_TYPES;
@@ -299,6 +300,8 @@ export class MintCrate {
     this.fg       = this.#entityCreator.foreground;
     this.roomList = this.#ROOM_LIST;
     this.inputs   = this.#inputHandlers;
+    this.math     = MintMath;
+    this.util     = MintUtil;
     
     // Container for user to store global data in
     this.globals = {};
@@ -1994,49 +1997,60 @@ export class MintCrate {
   // Debugging
   // ---------------------------------------------------------------------------
   
-  setFpsVisibility(enabled) {
-    this.#showFps = enabled;
+  showFps(enabled = null) {
+    this.#showFps = (enabled !== null) ? enabled : !this.#showFps;
   }
   
-  setRoomInfoVisibility(enabled) {
-    this.#showRoomInfo = enabled;
+  showRoomInfo(enabled = null) {
+    this.#showRoomInfo = (enabled !== null) ? enabled : !this.#showRoomInfo;
   }
   
-  setCameraInfoVisibility(enabled) {
-    this.#showCameraInfo = enabled;
+  showCameraInfo(enabled = null) {
+    this.#showCameraInfo = (enabled !== null) ? enabled : !this.#showCameraInfo;
   }
   
-  setTilemapCollisionMaskVisibility(enabled) {
-    this.#showTilemapCollisionMasks = enabled;
+  showTilemapMasks(enabled = null) {
+    this.#showTilemapCollisionMasks = (enabled !== null) ? enabled : !this.#showTilemapCollisionMasks;
   }
   
-  setTilemapBehaviorValueVisibility(enabled) {
-    this.#showTilemapBehaviorValues = enabled;
+  showTilemapBehaviors(enabled = null) {
+    this.#showTilemapBehaviorValues = (enabled !== null) ? enabled : !this.#showTilemapBehaviorValues;
   }
   
-  setActiveCollisionMaskVisibility(enabled) {
-    this.#showActiveCollisionMasks = enabled;
+  showActiveMasks(enabled = null) {
+    this.#showActiveCollisionMasks = (enabled !== null) ? enabled : !this.#showActiveCollisionMasks;
   }
   
-  setActiveInfoVisibility(enabled) {
-    this.#showActiveInfo = enabled;
+  showActiveInfo(enabled = null) {
+    this.#showActiveInfo = (enabled !== null) ? enabled : !this.#showActiveInfo;
   }
   
-  setOriginPointVisibility(enabled) {
-    this.#showActiveOriginPoints = enabled;
+  showOriginPoints(enabled = null) {
+    this.#showActiveOriginPoints = (enabled !== null) ? enabled : !this.#showActiveOriginPoints;
   }
   
-  setActionPointVisibility(enabled) {
-    this.#showActiveActionPoints = enabled
+  showActionPoints(enabled = null) {
+    this.#showActiveActionPoints = (enabled !== null) ? enabled : !this.#showActiveActionPoints;
   }
   
-  setAllDebugOverlayVisibility(enabled) {
-    
+  showAllDebugOverlays(enabled = null) {
+    this.showRoomInfo(enabled);
+    this.showCameraInfo(enabled);
+    this.showTilemapMasks(enabled);
+    this.showTilemapBehaviors(enabled);
+    this.showActiveMasks(enabled);
+    this.showActiveInfo(enabled);
+    this.showOriginPoints(enabled);
+    this.showActionPoints(enabled);
   }
   
   // ---------------------------------------------------------------------------
   // Runtime
   // ---------------------------------------------------------------------------
+  
+  setGlobalUpdateFunction(func) {
+    this.#globalUpdateFunction = func;
+  }
   
   #onPageFocusLost() {
     this.#pageHasFocus = !document.hidden;
@@ -2085,7 +2099,7 @@ export class MintCrate {
     }
     
     // Halt further update processing if game has lost focus
-    if (!this.#gameHasFocus()) {
+    if (!this.#gameHasFocus() && !this.#devMode) {
       this.#audioContext.suspend();
       return;
     }
@@ -2234,6 +2248,11 @@ export class MintCrate {
           this.#queuedFunctions.splice(i, 1);
         }
       }
+    }
+    
+    // Run global update function (if specified)
+    if (this.#globalUpdateFunction) {
+      this.#globalUpdateFunction();
     }
     
     // Run room update code
@@ -2598,7 +2617,7 @@ export class MintCrate {
     }
     
     // Draw overlay if game has lost focus
-    if (!this.#gameHasFocus()) {
+    if (!this.#gameHasFocus() && !this.#devMode) {
       this.#backContext.fillStyle = 'rgb(0 0 0 / 50%)';
       this.#backContext.fillRect(0, 0, this.#BASE_WIDTH, this.#BASE_HEIGHT);
       let font = this.#data.fonts['system_dialog'];

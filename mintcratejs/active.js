@@ -162,11 +162,11 @@ export class Active extends Entity {
   }
   
   setScaleX(scaleX) {
-    this.scaleX = scaleX;
+    this.#scaleX = scaleX;
   }
   
   setScaleY(scaleY) {
-    this.scaleY = scaleY;
+    this.#scaleY = scaleY;
   }
   
   scaleX(scaleX) {
@@ -301,15 +301,15 @@ export class Active extends Entity {
   }
   
   getColliderWidth() {
-    return this.#collider.width;
+    return this.#collider.w;
   }
   
   getColliderHeight() {
-    return this.#collider.height;
+    return this.#collider.h;
   }
   
   getColliderRadius() {
-    return this.#collider.radius;
+    return this.#collider.r;
   }
   
   getLeftEdgeX() {

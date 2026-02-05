@@ -5,7 +5,6 @@ import { Button } from "../objects/button.js";
 export class Title {
   load(engine) {
     this.mint = engine;
-    
     let mint = this.mint;
     
     if (mint.globals.enteringFromSplashScreen) {
@@ -21,7 +20,7 @@ export class Title {
     this.background.setX(-this.background.getImageWidth());
     this.background.setY(-this.background.getImageHeight());
     
-    this.logoShadow = mint.bg.addBackdrop('logo-shadow', 0, 10);
+    this.logoShadow = mint.bg.addBackdrop('logo-shadow', 0, 16);
     this.logoShadow.setX(mint.getBaseWidth() / 2 - this.logoShadow.getWidth() / 2);
     
     this.logo = mint.bg.addBackdrop('logo', 0, 0);
@@ -29,18 +28,19 @@ export class Title {
     
     this.sineWaveTicks = 0.2;
     
+    let uiTopY = 86;
     this.btnStart = new Button(mint,
-      56, 72,
+      56, uiTopY,
       128, 24,
       'PLAY', 'w', false,
       () => {
         mint.globals.enteringFromSplashScreen = false;
-        // mint.changeRoom(mint.roomList.Game, {fadeMusic: true});
+        mint.changeRoom(mint.roomList.Game, {fadeMusic: true});
       }
     );
     
     this.btnBgm = new Button(mint,
-      56, 96,
+      56, uiTopY + 24,
       64, 24,
       'BGM', 'a', true,
       (enabled) => {
@@ -50,7 +50,7 @@ export class Title {
     );
     
     this.btnSfx = new Button(mint,
-      120, 96,
+      120, uiTopY + 24,
       64, 24,
       'SFX', 'd', true,
       (enabled) => {
@@ -74,7 +74,7 @@ export class Title {
     // it is, lol. However, it works.
     this.sineWaveTicks += 0.01;
     let logoPosition =
-      Math.floor((2.5 * Math.sin(this.sineWaveTicks * 0.9 * Math.PI / 0.5)) + 8);
+      Math.floor((2.5 * Math.sin(this.sineWaveTicks * 0.9 * Math.PI / 0.5)) + this.logoShadow.getY() - 2);
     this.logo.setY(logoPosition);
     
     // Update buttons

@@ -20,3 +20,18 @@ MintMath.deg = function(radians) {
 MintMath.roundPrecise = function(num, numDecimalPlaces) {
   return Math.round((num + Number.EPSILON) * 100) / 100;
 }
+
+// Inclusive
+MintMath.randomInt = function(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+MintMath.midpoint = function(x1, y1, x2, y2) {
+  // Calculate midpoint and result result
+  return {
+    x: ((x1 + x2) / 2),
+    y: ((y1 + y2) / 2)
+  };
+}
