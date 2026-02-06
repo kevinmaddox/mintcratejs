@@ -35,7 +35,7 @@ export class MintCrate {
   #BASE_WIDTH;
   #BASE_HEIGHT;
   
-  #SCREEN_SCALE;
+  #screenScale;
   
   #colorKeys;
   
@@ -146,7 +146,9 @@ export class MintCrate {
     this.#backContext = this.#backCanvas.getContext('2d');
     this.#backContext.imageSmoothingEnabled = false;
     
-    document.querySelector(`#${divTargetId}`).append(this.#frontCanvas);
+    let targetContainer = document.querySelector(`#${divTargetId}`);
+    targetContainer.style.display = "flex";
+    targetContainer.append(this.#frontCanvas);
     
     // Paths for loading media resources
     this.#RES_PATHS = {
@@ -163,7 +165,7 @@ export class MintCrate {
     this.#BASE_HEIGHT = baseHeight;
     
     // Graphics scaling values
-    this.#SCREEN_SCALE = options.screenScale;
+    this.#screenScale = options.screenScale;
     
     // RGB value sets and rendering context for color keying sprites
     this.#colorKeys = [];
@@ -1711,8 +1713,8 @@ export class MintCrate {
     let x    = e.clientX - rect.left;
     let y    = e.clientY - rect.top;
     
-    this.#mousePositions.localX = Math.floor(x / this.#SCREEN_SCALE);
-    this.#mousePositions.localY = Math.floor(y / this.#SCREEN_SCALE);
+    this.#mousePositions.localX = Math.floor(x / this.#screenScale);
+    this.#mousePositions.localY = Math.floor(y / this.#screenScale);
   }
   
   //----------------------------------------------------------------------------
@@ -1787,8 +1789,19 @@ export class MintCrate {
     }
   }
   
-  playBgm(trackName, fadeLength = 0) {
+  playBgm(trackName, fadeLength = 0, forceRestart = false) {
+    // Don't do anything if the song is playing and we're not restarting it
+    if (
+      !forceRestart
+      && this.#bgmTrackIsLoaded()
+      && this.#currentMusicTrackName === trackName
+    ) {
+      return;
+    }
+    
     /*
+      Possible states:
+      
       01. No track is playing at all
         -> Play the new track
       02. Another track is currently playing
@@ -2048,6 +2061,26 @@ export class MintCrate {
   // Runtime
   // ---------------------------------------------------------------------------
   
+  setScreenScale(scale) {
+    this.#screenScale = scale;
+    
+    let newWidth  = this.#BASE_WIDTH  * scale;
+    let newHeight = this.#BASE_HEIGHT * scale;
+    
+    this.#frontCanvas.width    = newWidth;
+    this.#frontCanvas.height   = newHeight;
+    
+    this.#backCanvas.width    = newWidth;
+    this.#backCanvas.height   = newHeight;
+    
+    this.#frontContext.imageSmoothingEnabled = false;
+    this.#backContext.imageSmoothingEnabled = false;
+  }
+  
+  getScreenScale() {
+    return this.#screenScale;
+  }
+  
   setGlobalUpdateFunction(func) {
     this.#globalUpdateFunction = func;
   }
@@ -2298,8 +2331,8 @@ export class MintCrate {
       this.#BASE_HEIGHT,                      // sHeight
       0,                                      // dx
       0,                                      // dy
-      this.#BASE_WIDTH  * this.#SCREEN_SCALE, // dWidth
-      this.#BASE_HEIGHT * this.#SCREEN_SCALE  // dHeight
+      this.#BASE_WIDTH  * this.#screenScale, // dWidth
+      this.#BASE_HEIGHT * this.#screenScale  // dHeight
     );
   }
   

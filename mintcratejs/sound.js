@@ -122,6 +122,7 @@ export class Sound {
     this.#endCallback = () => {
       this.#cleanUp();
       this.#hasEnded = true;
+      this.#sourceNode.removeEventListener('ended', this.#endCallback);
     };
     this.#sourceNode.addEventListener('ended', this.#endCallback);
     
@@ -174,7 +175,6 @@ export class Sound {
     if (this.#sourceNode) {
       this.#sourceNode.stop();
       this.#sourceNode.disconnect();
-      this.#sourceNode.removeEventListener('ended', this.#endCallback);
     }
     
     if (this.#gainNode) {

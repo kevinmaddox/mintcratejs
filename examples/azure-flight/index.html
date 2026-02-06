@@ -3,8 +3,51 @@
 <head>
   <title>MintCrate Example - Azure Flight</title>
   <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="../style.css"/>
 </head>
 <body>
+  <div class="wrapper">
+  
+  <div class="header"><img src="../title.png"/></div>
+  
+  <div class="sub-wrapper">
+  <h1>Azure Flight</h1>
+  <h2>MintCrate Examples</h2>
+  
+  <div class="scale-controls">
+    <span class="scale-btn" data-val="-1">-</span><span class="scale-btn" data-val="1">+</span>
+  </div>
+  
   <div id="mintcrate-target"></div>
   <script type="module" src="main.js"></script>
+  
+  <table>
+    <tr><th colspan="2">Controls</th></tr>
+    <tr><th colspan="2">Keyboard</th></tr>
+    <tr><td>WSAD</td><td>Menu buttons</td></tr>
+    <tr><td>J</td><td>Flap</td></tr>
+    <tr><th colspan="2">Mouse</th></tr>
+    <tr><td>Left Click</td><td>Menu buttons, flap</td></tr>
+  </table>
+  
+  <p><a href="#">Return to Examples List</a></p>
+  </div>
+  </div>
+  
+  <div class="project-information">
+    Developed with <a href="https://github.com/kevinmaddox/mintcratejs">MintCrate</a><br>
+    Code licensed under the <a href="https://github.com/kevinmaddox/mintcratejs/blob/main/LICENSE">MIT license</a><br>
+    Assets and concepts &copy; <a href="https://github.com/kevinmaddox/">Kevin Maddox</a>, all rights reserved
+  </div>
+  
+  <script>
+    document.querySelectorAll('.scale-btn').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        let val = Number(e.target.dataset.val);
+        let newScale = window.mint.getScreenScale() + val;
+        newScale = Math.max(newScale, 1);
+        window.mint.setScreenScale(newScale);
+      });
+    });
+  </script>
 </body>

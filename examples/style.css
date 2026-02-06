@@ -1,0 +1,145 @@
+* {
+  font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
+  color: #202020;
+}
+
+body {
+  padding: 0;
+  margin: 0;
+}
+
+.wrapper {
+  border-radius: 0.375rem;
+  margin: 16px auto;
+  
+  width: max-content;
+  min-width: 480px;
+  box-sizing: border-box;
+  border: 1px solid #d1d9e0;
+  overflow: hidden;
+}
+
+.sub-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 0.5rem 2rem;
+}
+
+.header {
+  height: 32px;
+  background: gray;
+  width: 100%;
+  background-image:
+    /* url('scanlines.png'), */
+    linear-gradient(to bottom, #f7fafc 0%,#e6e9f4 50%,#d5def2 51%,#e5edff 100%);
+  border-bottom: 1px solid gray;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  display: none;
+}
+
+.project-information {
+  text-align: center;
+  color: #59636e;
+  font-size: 0.75rem;
+}
+
+p {
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+a {
+  color: #1f2328;
+}
+
+a:hover {
+    color: #0969da;
+}
+
+h1 {
+  font-size: 2em;
+  font-weight: 600;
+  width: 100%;
+  color: #1f2328;
+  font-size: 2em;
+  margin-bottom: 0;
+}
+
+h2 {
+  font-size: 1.25rem;
+  font-weight: normal;
+  font-style: italic;
+  margin-top: 4px;
+  border-bottom: 1px solid #d1d9e0;
+  padding-bottom: 0.5rem;
+  width: 100%;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+td, th {
+  border: 1px solid #d1d9e0;
+  padding: 0.25rem;
+  font-size: 0.8rem;
+  color: #1f2328;
+}
+
+th {
+  text-align: left;
+  background: #f6f8fa;
+}
+
+td:first-child {
+  width: 35%;
+}
+
+#mintcrate-target {
+  border: 1px solid gray;
+  padding: 2px;
+  align-self: center;
+}
+
+.scale-controls {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.scale-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f6f8fa;
+  width: 2.5rem;
+  height: 1.75rem;
+  border: 1px solid #d1d9e0;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: 0.75rem;
+  user-select: none;
+}
+
+.scale-btn:nth-child(1) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.scale-btn:nth-child(2) {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left: none;
+}
+
+.scale-btn:hover {
+  background: #eff2f5;
+}
+
+.scale-btn:active {
+  background: #e6eaef;
+}

@@ -1,15 +1,15 @@
 - Short-term -------------------------------------------------------------------
 [ ] Add a default collider to Backdrops and make them collision-testable
-  - testActiveCollision() should become testObjectCollision()
-[ ] Add game title param, show it during loading and debug overlays
+  - testActiveCollision() should become testEntityCollision()
 [ ] Cross-browser testing
+[/] Look through and take care of TODOs
+[x] Ensure that scaling on the fly works
 [x] Remove instance collection -- user should be managing their own data
 [x] Rewrite paragraph text parser as it has issues (Paragraph.setTextContent())
 [x] Background additions
   [x] U/V Scroller
   [x] 9-patches
   [x] Iron out bugs
-[/] Look through and take care of TODOs
 [x] Test scaling
 [x] Test Active.angleLookAtPoint()
 [x] Mouse input
@@ -33,6 +33,9 @@
 [ ] Should we halt game logic when the fade delay of a room transition is hit?
 
 - Outstanding Bugs -------------------------------------------------------------
+[ ] Azure Flight - BGM/SFX buttons don't start in off position if already off
+[ ] Azure Flight - Moving quickly from one menu item to another, while holding
+    down the mouse, will make the sound cancel itself out
 [ ] In Azure Flight, in the block for "Reposition boulders if they've left the
     screen," if you remove the line to splice the boulder out... it'll
     systematically remove all other entities from the scene. Why?

@@ -95,7 +95,7 @@ export class Game {
     let mint = this.mint;
     
     let inputReceived =
-      (mint.mouseHeld(1) || mint.mouseHeld(2) || mint.inputs[0].held('j'));
+      (mint.mouseHeld(0) || mint.inputs[0].held('j'));
     
     // State: Ready to play ----------------------------------------------------
     if (this.state === "ready") {

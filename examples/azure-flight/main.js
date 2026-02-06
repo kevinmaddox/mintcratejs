@@ -19,10 +19,12 @@ let roomList = [
 // MintCrate Initialization ----------------------------------------------------
 
 var mint = new MintCrate("mintcrate-target", 240, 160, roomList, {
-  screenScale: 1,
+  screenScale: 2,
   devMode: true
   // devMode: false
 });
+
+window.mint = mint;
 
 mint.defineColorKeys([
   {r:  134, g: 171, b: 125},
@@ -40,6 +42,8 @@ mint.inputs[0].mapInput('j', 'KeyJ');
 
 mint.inputs[0].mapInput('1', 'Digit1');
 mint.inputs[0].mapInput('2', 'Digit2');
+mint.inputs[0].mapInput('3', 'Digit3');
+mint.inputs[0].mapInput('4', 'Digit4');
 
 mint.globals.enteringFromSplashScreen = true;
 mint.globals.musicOn = true;
@@ -53,6 +57,14 @@ mint.setGlobalUpdateFunction(() => {
   
   if (mint.inputs[0].pressed('2')) {
     mint.stopBgm();
+  }
+  
+  if (mint.inputs[0].pressed('3')) {
+    mint.setScreenScale(1);
+  }
+  
+  if (mint.inputs[0].pressed('4')) {
+    mint.setScreenScale(2);
   }
 });
 
