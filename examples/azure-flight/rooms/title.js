@@ -32,7 +32,7 @@ export class Title {
     this.btnStart = new Button(mint,
       56, uiTopY,
       128, 24,
-      'PLAY', 'w', false,
+      'PLAY', 'w',
       () => {
         mint.globals.enteringFromSplashScreen = false;
         mint.changeRoom(mint.roomList.Game, {fadeMusic: true});
@@ -42,21 +42,21 @@ export class Title {
     this.btnBgm = new Button(mint,
       56, uiTopY + 24,
       64, 24,
-      'BGM', 'a', true,
+      'BGM', 'a',
       (enabled) => {
         mint.globals.bgmOn = enabled;
         mint.setBgmVolume((enabled) ? 1 : 0);
-      }
+      }, true, mint.globals.bgmOn
     );
     
     this.btnSfx = new Button(mint,
       120, uiTopY + 24,
       64, 24,
-      'SFX', 'd', true,
+      'SFX', 'd',
       (enabled) => {
         mint.globals.sfxOn = enabled;
         mint.setSfxVolume((enabled) ? 1 : 0);
-      }
+      }, true, mint.globals.sfxOn
     );
   }
   

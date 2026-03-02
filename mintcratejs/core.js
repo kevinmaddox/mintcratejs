@@ -21,6 +21,7 @@ export class MintCrate {
   //----------------------------------------------------------------------------
   
   #pageHasFocus;
+  #justLostFocus;
   
   #frontCanvas;
   #frontContext;
@@ -147,7 +148,7 @@ export class MintCrate {
     this.#backContext.imageSmoothingEnabled = false;
     
     let targetContainer = document.querySelector(`#${divTargetId}`);
-    targetContainer.style.display = "flex";
+    targetContainer.style.display = "inline-flex";
     targetContainer.append(this.#frontCanvas);
     
     // Paths for loading media resources
@@ -1705,6 +1706,10 @@ export class MintCrate {
   }
   
   #mouseButtonHandler(e) {
+    if (!this.#gameHasFocus()) {
+      return;
+    }
+    
     this.#mouseStates[e.button] = (e.type === 'mousedown');
   }
   
@@ -2047,6 +2052,7 @@ export class MintCrate {
   }
   
   showAllDebugOverlays(enabled = null) {
+    this.showFps(enabled);
     this.showRoomInfo(enabled);
     this.showCameraInfo(enabled);
     this.showTilemapMasks(enabled);
@@ -2614,12 +2620,14 @@ export class MintCrate {
     }
     
     // Draw FPS debug overlay
-    this.#drawText(
-      [this.#currentFps.toString()],
-      this.#data.fonts['system_counter'],
-      0,
-      0
-    );
+    if (this.#showFps) {
+      this.#drawText(
+        [this.#currentFps.toString()],
+        this.#data.fonts['system_counter'],
+        0,
+        0
+      );
+    }
     
     // Draw debug info for current room
     if (this.#showRoomInfo) {

@@ -341,7 +341,7 @@ export class Game {
         this.btnRetry = new Button(mint,
           56, 72,
           128, 24,
-          'RETRY', 'w', false,
+          'RETRY', 'w',
           () => {
             mint.changeRoom(mint.roomList.Game, {persistAudio: true});
           }
@@ -350,7 +350,7 @@ export class Game {
         this.btnMenu = new Button(mint,
           56, 96,
           128, 24,
-          'MENU', 's', false,
+          'MENU', 's',
           () => {
             mint.changeRoom(mint.roomList.Title, {fadeMusic: true});
           }

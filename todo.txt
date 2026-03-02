@@ -3,6 +3,30 @@
   - testActiveCollision() should become testEntityCollision()
 [ ] Cross-browser testing
 [/] Look through and take care of TODOs
+
+- Long-term --------------------------------------------------------------------
+[ ] Ensure the inactive pause screen text can fit most reasonable sizes
+  - Will need a smaller font for very tiny resolutions
+[ ] General cleanup and organization
+[ ] Function comments
+[ ] Function validation
+[ ] Docs & tutorials
+
+- Ponderings -------------------------------------------------------------------
+[ ] Should we halt game logic when the fade delay of a room transition is hit?
+
+- Outstanding Bugs -------------------------------------------------------------
+[ ] Azure Flight - Moving quickly from one menu item to another, while holding
+    down the mouse, will make the sound cancel itself out
+[ ] Make it so that, when clicking back into the screen when it's idle, the
+    click event does not pass through (and click buttons, etc.)
+
+- Done -------------------------------------------------------------------------
+[x] Azure Flight - in the block for "Reposition boulders if they've left the
+    screen," if you remove the line to splice the boulder out... it'll
+    systematically remove all other entities from the scene. Why?
+    - Because the destroy() method was being called, and we weren't checking
+      inside that function to see if the entity was previously destroyed
 [x] Ensure that scaling on the fly works
 [x] Remove instance collection -- user should be managing their own data
 [x] Rewrite paragraph text parser as it has issues (Paragraph.setTextContent())
@@ -22,25 +46,5 @@
 [x] The pitch appears to change the time offset of a track... can we calculate
     fading-in song
 [x] Check crossfades... the fading-out song seems to fade quicker than the
-
-- Long-term --------------------------------------------------------------------
-[ ] General cleanup and organization
-[ ] Function comments
-[ ] Function validation
-[ ] Docs & tutorials
-
-- Ponderings -------------------------------------------------------------------
-[ ] Should we halt game logic when the fade delay of a room transition is hit?
-
-- Outstanding Bugs -------------------------------------------------------------
-[ ] Azure Flight - BGM/SFX buttons don't start in off position if already off
-[ ] Azure Flight - Moving quickly from one menu item to another, while holding
-    down the mouse, will make the sound cancel itself out
-[ ] In Azure Flight, in the block for "Reposition boulders if they've left the
-    screen," if you remove the line to splice the boulder out... it'll
-    systematically remove all other entities from the scene. Why?
-[ ] Make it so that, when clicking back into the screen when it's idle, the
-    click event does not pass through (and click buttons, etc.)
-[ ] Ensure the inactive pause screen text can fit most reasonable sizes
-  - Will need a smaller font for very tiny resolutions
+[x] Azure Flight - BGM/SFX buttons don't start in off position if already off
 [x] Backdrop: Shifting the UV, and then scaling it, will cause it to move

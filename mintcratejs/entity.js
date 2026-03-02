@@ -51,6 +51,10 @@ export class Entity {
   // ---------------------------------------------------------------------------
   
   destroy() {
+    if (this.#wasDestroyed) {
+      return;
+    }
+    
     // Remove entity from MintCrate's linear instance list
     let linearInstanceIndex =
       this.#linearInstanceList.findIndex((entity) => entity === this);

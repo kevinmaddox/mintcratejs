@@ -9,8 +9,9 @@ export class Button {
     height,
     textContent,
     keyboardKey,
-    toggleable,
     clickedCallback,
+    toggleable = false,
+    startEnabled = null
   ) {
     this.mint = mint;
     
@@ -22,7 +23,7 @@ export class Button {
     this.btnBackdrops = {
       activeUp:       mint.fg.addBackdrop('button-active-up',     x, y, {ninePatch: true, width: width, height: height}),
       activeDown:     mint.fg.addBackdrop('button-active-down',   x, y, {ninePatch: true, width: width, height: height}),
-      inactiveUp:     mint.fg.addBackdrop('button-inactive-down', x, y, {ninePatch: true, width: width, height: height}),
+      inactiveUp:     mint.fg.addBackdrop('button-inactive-up', x, y, {ninePatch: true, width: width, height: height}),
       inactiveDown:   mint.fg.addBackdrop('button-inactive-down', x, y, {ninePatch: true, width: width, height: height})
     };
     
@@ -36,6 +37,9 @@ export class Button {
     
     this.toggleable = toggleable;
     this.enabled = true;
+    if (startEnabled !== null) {
+      this.enabled = startEnabled;
+    }
     
     this.wasClicked = false;
     

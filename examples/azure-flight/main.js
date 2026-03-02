@@ -4,6 +4,7 @@
 
 // MintCrate
 import { MintCrate } from "../../mintcratejs/core.js";
+// import { MintCrate } from "https://cdn.jsdelivr.net/gh/kevinmaddox/mintcratejs@master/mintcratejs/core.js";
 
 // Levels
 import { Splash } from "./rooms/splash.js";
@@ -12,16 +13,15 @@ import { Game }   from "./rooms/game.js";
 
 let roomList = [
   Game,
-  Title,
   Splash,
+  Title,
 ];
 
 // MintCrate Initialization ----------------------------------------------------
 
 var mint = new MintCrate("mintcrate-target", 240, 160, roomList, {
   screenScale: 2,
-  devMode: true
-  // devMode: false
+  // devMode: true
 });
 
 window.mint = mint;
