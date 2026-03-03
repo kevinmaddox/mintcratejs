@@ -21,7 +21,6 @@ export class MintCrate {
   //----------------------------------------------------------------------------
   
   #pageHasFocus;
-  #justLostFocus;
   
   #frontCanvas;
   #frontContext;
@@ -1706,10 +1705,6 @@ export class MintCrate {
   }
   
   #mouseButtonHandler(e) {
-    if (!this.#gameHasFocus()) {
-      return;
-    }
-    
     this.#mouseStates[e.button] = (e.type === 'mousedown');
   }
   

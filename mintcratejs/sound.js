@@ -97,6 +97,13 @@ export class Sound {
   }
   
   #play(volume, pitch, loopData, startOffset) {
+    // Remove old sound-destroying callback if present
+    // This is done in case the sound is played in rapid succession
+    // Not doing so can result in the sound being cancelled out
+    if (this.#endCallback) {
+      this.#sourceNode.removeEventListener('ended', this.#endCallback);
+    }
+    
     // Stop and clean up old audio data in case it's already playing
     this.#cleanUp();
     
@@ -112,7 +119,7 @@ export class Sound {
     this.#sourceNode.playbackRate.value = pitch;
     
     // Set looping properties
-    this.#sourceNode.loop      = loopData.enabled;
+    this.#sourceNode.loop = loopData.enabled;
     if (loopData.enabled) {
       this.#sourceNode.loopStart = loopData.start;
       this.#sourceNode.loopEnd   = loopData.end;
