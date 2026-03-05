@@ -31,7 +31,7 @@ export class Game {
     
     mint.bg.addBackdrop('mountains');
     
-    mint.playBgm('tangent');
+    mint.playMusic('tangent');
     
     this.WATER_LINE_Y = 156;
     // this.waterLine = mint.fg.addActive('water', 0, 156);
@@ -196,7 +196,7 @@ export class Game {
       
       // Play flapping sound.
       if (inputReceived && this.harpy.flapSoundDelay <= 0) {
-        mint.playSfx('flap', {pitch: 0.875 + (Math.random() / 4)});
+        mint.playSound('flap', {pitch: 0.875 + (Math.random() / 4)});
         this.harpy.flapSoundDelay = 15;
       } else if (!inputReceived) {
         this.harpy.flapSoundDelay = 0;
@@ -211,9 +211,9 @@ export class Game {
         ) {
           // Play sound
           if (!this.harpy.wasHit) {
-            mint.playSfx('impact-big');
+            mint.playSound('impact-big');
           } else {
-            mint.playSfx('impact');
+            mint.playSound('impact');
           }
           
           // Mark objects as being hit
@@ -245,7 +245,7 @@ export class Game {
       
       // Kill player if they go too high
       if (this.harpy.getY() < 0) {
-        mint.playSfx('impact-big');
+        mint.playSound('impact-big');
         
         this.harpy.wasHit = true;
         this.harpy.setY(0);
@@ -266,7 +266,7 @@ export class Game {
           this.harpy.treadDelay = 0.2;
           this.createWaterSplash(this.harpy.getX(), 0.05, 0.25);
           this.createDroplets(this.harpy.getX(), 2, true);
-          mint.playSfx('tread');
+          mint.playSound('tread');
       }
       
       this.harpy.treadDelay -= (1 / 60);
@@ -306,7 +306,7 @@ export class Game {
       
       // Show game over screen if player goes too low
       if (this.harpy.getY() > mint.getBaseHeight()) {
-        mint.playSfx('splash-big');
+        mint.playSound('splash-big');
         
         this.createWaterSplash(this.harpy.getX());
         this.createDroplets(this.harpy.getX());
@@ -377,7 +377,7 @@ export class Game {
         this.createDroplets(pole.getX());
         pole.destroy();
         this.poles.splice(i, 1);
-        mint.playSfx('splash');
+        mint.playSound('splash');
       }
     }
     
@@ -393,7 +393,7 @@ export class Game {
       
       // Remove boulder if it falls into the water
       if (boulder.getY() > mint.getBaseHeight() + boulder.getColliderRadius()) {
-        mint.playSfx('splash');
+        mint.playSound('splash');
         this.createWaterSplash(boulder.getX());
         this.createDroplets(boulder.getX());
         boulder.destroy();

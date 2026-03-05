@@ -1,13 +1,13 @@
 // ---------------------------------------------------------------------------
-// MintCrate - Sound
-// Provides a convenient way to work with sound data
+// MintCrate - Audio
+// Provides a convenient way to work with audio data
 // ---------------------------------------------------------------------------
 
 'use strict';
 
 import { MintMath } from "./mintmath.js";
 
-export class Sound {
+export class Audio {
   
   //----------------------------------------------------------------------------
   // Member variables
@@ -45,7 +45,7 @@ export class Sound {
     this.#totalTimeElapsed = 0;
     this.#lastTimestamp = 0;
     
-    this.#state = Sound.PLAYBACK_STATES.STOPPED;
+    this.#state = Audio.PLAYBACK_STATES.STOPPED;
   }
   
   play(volume, pitch, loopData) {
@@ -55,19 +55,19 @@ export class Sound {
     
     this.#play(volume, pitch, loopData, 0);
     
-    this.#state = Sound.PLAYBACK_STATES.PLAYING;
+    this.#state = Audio.PLAYBACK_STATES.PLAYING;
   }
   
   stop() {
     this.#cleanUp();
     
-    this.#state = Sound.PLAYBACK_STATES.STOPPED;
+    this.#state = Audio.PLAYBACK_STATES.STOPPED;
   }
   
   pause() {
     if (
-      this.#state === Sound.PLAYBACK_STATES.PAUSED
-      || this.#state === Sound.PLAYBACK_STATES.STOPPED
+      this.#state === Audio.PLAYBACK_STATES.PAUSED
+      || this.#state === Audio.PLAYBACK_STATES.STOPPED
     ) {
       return;
     }
@@ -76,13 +76,14 @@ export class Sound {
     timeElapsed *= this.#sourceNode.playbackRate.value;
     this.#totalTimeElapsed += timeElapsed;
     
+    this.#removeCleanupCallback();
     this.#cleanUp();
     
-    this.#state = Sound.PLAYBACK_STATES.PAUSED;
+    this.#state = Audio.PLAYBACK_STATES.PAUSED;
   }
   
   resume(volume, pitch, loopData) {
-    if (this.#state !== Sound.PLAYBACK_STATES.PAUSED) {
+    if (this.#state !== Audio.PLAYBACK_STATES.PAUSED) {
       return;
     }
     
@@ -93,16 +94,20 @@ export class Sound {
       (this.#totalTimeElapsed % this.#audioBuffer.duration)
     );
     
-    this.#state = Sound.PLAYBACK_STATES.PLAYING;
+    this.#state = Audio.PLAYBACK_STATES.PLAYING;
+  }
+  
+  #removeCleanupCallback() {
+    if (this.#endCallback) {
+      this.#sourceNode.removeEventListener('ended', this.#endCallback);
+    }
   }
   
   #play(volume, pitch, loopData, startOffset) {
     // Remove old sound-destroying callback if present
     // This is done in case the sound is played in rapid succession
     // Not doing so can result in the sound being cancelled out
-    if (this.#endCallback) {
-      this.#sourceNode.removeEventListener('ended', this.#endCallback);
-    }
+    this.#removeCleanupCallback();
     
     // Stop and clean up old audio data in case it's already playing
     this.#cleanUp();
@@ -146,7 +151,7 @@ export class Sound {
   }
   
   isPaused() {
-    return (this.#state === Sound.PLAYBACK_STATES.PAUSED);
+    return (this.#state === Audio.PLAYBACK_STATES.PAUSED);
   }
   
   hasEnded() {
@@ -164,7 +169,7 @@ export class Sound {
   setPitch(pitch) {
     pitch = MintMath.clamp(pitch, 0.1, 30);
     
-    if (this.#state === Sound.PLAYBACK_STATES.PLAYING) {
+    if (this.#state === Audio.PLAYBACK_STATES.PLAYING) {
       let timeElapsed = this.#audioContext.currentTime - this.#lastTimestamp;
       timeElapsed *= this.#sourceNode.playbackRate.value;
       this.#totalTimeElapsed += timeElapsed;
@@ -189,7 +194,7 @@ export class Sound {
       this.#gainNode.disconnect();
     }
     
-    this.#state = Sound.PLAYBACK_STATES.STOPPED;
+    this.#state = Audio.PLAYBACK_STATES.STOPPED;
   }
   
 }

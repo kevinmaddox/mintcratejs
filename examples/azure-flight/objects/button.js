@@ -67,7 +67,7 @@ export class Button {
         this.wasClicked = true;
       }
       
-      mint.playSfx('button-up');
+      mint.playSound('button-up');
       this.clickedCallback(this.enabled);
     }
     
@@ -82,7 +82,7 @@ export class Button {
       || mint.inputs[0].held(this.keyboardKey)
     ) {
       if (!this.isDown) {
-        mint.playSfx('button-down');
+        mint.playSound('button-down');
         this.isDown = true;
       }
       

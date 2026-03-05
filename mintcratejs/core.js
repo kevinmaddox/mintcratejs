@@ -7,7 +7,7 @@
 
 import { Active }        from "./active.js";
 import { InputHandler }  from "./inputhandler.js";
-import { Sound }         from "./sound.js";
+import { Audio }         from "./audio.js";
 import { EntityFactory } from "./entityfactory.js";
 import { MintUtil }      from "./mintutil.js";
 import { MintMath }      from "./mintmath.js";
@@ -956,7 +956,7 @@ export class MintCrate {
         let audioBuffer = loadedOggs[item.name];
         
         this.#data.sounds[item.name] = {
-          source: new Sound(this.#audioContext, audioBuffer),
+          source: new Audio(this.#audioContext, audioBuffer),
           lastVolume: 1,
           lastPitch: 1
         };
@@ -993,7 +993,7 @@ export class MintCrate {
         let audioBuffer = loadedOggs[item.name];
         
         this.#data.music[item.name] = {
-          source: new Sound(this.#audioContext, audioBuffer),
+          source: new Audio(this.#audioContext, audioBuffer),
           relativeVolume: 0,
           state: this.#MUSIC_STATES.STOPPED,
           fade: {
@@ -1155,6 +1155,26 @@ export class MintCrate {
     return this.#BASE_HEIGHT;
   }
   
+  setScreenScale(scale) {
+    this.#screenScale = scale;
+    
+    let newWidth  = this.#BASE_WIDTH  * scale;
+    let newHeight = this.#BASE_HEIGHT * scale;
+    
+    this.#frontCanvas.width    = newWidth;
+    this.#frontCanvas.height   = newHeight;
+    
+    this.#backCanvas.width    = newWidth;
+    this.#backCanvas.height   = newHeight;
+    
+    this.#frontContext.imageSmoothingEnabled = false;
+    this.#backContext.imageSmoothingEnabled = false;
+  }
+  
+  getScreenScale() {
+    return this.#screenScale;
+  }
+  
   // ---------------------------------------------------------------------------
   // Room management
   // ---------------------------------------------------------------------------
@@ -1199,8 +1219,8 @@ export class MintCrate {
     
     // Stop all audio
     if (!persistAudio) {
-      this.stopAllSfx();
-      this.stopBgm();
+      this.stopAllSounds();
+      this.stopMusic();
     }
     
     // Reset camera
@@ -1304,7 +1324,7 @@ export class MintCrate {
     
     // Fade out music (if specified)
     if (fadeMusic) {
-      this.stopBgm(this.#fadeLevel / this.#fadeValue);
+      this.stopMusic(this.#fadeLevel / this.#fadeValue);
     }
   }
   
@@ -1765,7 +1785,7 @@ export class MintCrate {
   // Audio
   // ---------------------------------------------------------------------------
   
-  playSfx(soundName, options = {}) {
+  playSound(soundName, options = {}) {
     // Default params
     options.volume = options.volume ?? 1;
     options.pitch = options.pitch ?? 1;
@@ -1781,7 +1801,7 @@ export class MintCrate {
     sound.source.play(options.volume * this.#masterVolume.sfx, options.pitch, {enabled: false});
   }
   
-  stopAllSfx() {
+  stopAllSounds() {
     // Stop all playing sounds
     for (const soundName in this.#data.sounds) {
       let sound = this.#data.sounds[soundName];
@@ -1789,11 +1809,11 @@ export class MintCrate {
     }
   }
   
-  playBgm(trackName, fadeLength = 0, forceRestart = false) {
+  playMusic(trackName, fadeLength = 0, forceRestart = false) {
     // Don't do anything if the song is playing and we're not restarting it
     if (
       !forceRestart
-      && this.#bgmTrackIsLoaded()
+      && this.#musicTrackIsLoaded()
       && this.#currentMusicTrackName === trackName
     ) {
       return;
@@ -1816,46 +1836,46 @@ export class MintCrate {
     */
     
     // State 01
-    if (!this.#bgmTrackIsLoaded()) {
-      this.#startBgmPlayback(trackName, fadeLength);
+    if (!this.#musicTrackIsLoaded()) {
+      this.#startMusicPlayback(trackName, fadeLength);
     
     // State 02
     } else if (this.#currentMusicTrackName !== trackName) {
-      this.#stopBgmPlayback(this.#currentMusicTrackName, fadeLength);
-      this.#startBgmPlayback(trackName, fadeLength);
+      this.#stopMusicPlayback(this.#currentMusicTrackName, fadeLength);
+      this.#startMusicPlayback(trackName, fadeLength);
     
     // State 03 & State 04
     } else {
-      this.#stopBgmPlayback(this.#currentMusicTrackName, 0);
-      this.#startBgmPlayback(trackName, fadeLength);
+      this.#stopMusicPlayback(this.#currentMusicTrackName, 0);
+      this.#startMusicPlayback(trackName, fadeLength);
     }
     
     // Store the music track name
     this.#currentMusicTrackName = trackName;
   }
   
-  stopBgm(fadeLength = 0) {
-    if (this.#bgmTrackIsLoaded()) {
+  stopMusic(fadeLength = 0) {
+    if (this.#musicTrackIsLoaded()) {
       let track = this.#data.music[this.#currentMusicTrackName];
       
       if (
         track.state !== this.#MUSIC_STATES.STOPPING
         && track.state !== this.#MUSIC_STATES.STOPPED
       ) {
-        this.#stopBgmPlayback(this.#currentMusicTrackName, fadeLength);
+        this.#stopMusicPlayback(this.#currentMusicTrackName, fadeLength);
         
       } else if (
         track.state === this.#MUSIC_STATES.STOPPING
         && fadeLength === 0
       ) {
-        this.#stopBgmPlayback(this.#currentMusicTrackName, fadeLength);
+        this.#stopMusicPlayback(this.#currentMusicTrackName, fadeLength);
         this.#currentMusicTrackName = "";
       }
     }
   }
   
-  pauseBgm(fadeLength = 0) {
-    if (this.#bgmTrackIsLoaded()) {
+  pauseMusic(fadeLength = 0) {
+    if (this.#musicTrackIsLoaded()) {
       let track = this.#data.music[this.#currentMusicTrackName];
       
       if (
@@ -1866,25 +1886,25 @@ export class MintCrate {
           && fadeLength === 0
         )
       ) {
-        this.#stopBgmPlayback(this.#currentMusicTrackName, fadeLength, true);
+        this.#stopMusicPlayback(this.#currentMusicTrackName, fadeLength, true);
       }
     }
   }
   
-  resumeBgm(fadeLength = 0) {
-    if (this.#bgmTrackIsLoaded()) {
+  resumeMusic(fadeLength = 0) {
+    if (this.#musicTrackIsLoaded()) {
       let track = this.#data.music[this.#currentMusicTrackName];
       
       if (
         track.state === this.#MUSIC_STATES.PAUSING
         || track.state === this.#MUSIC_STATES.PAUSED
       ) {
-        this.#startBgmPlayback(this.#currentMusicTrackName, fadeLength, true);
+        this.#startMusicPlayback(this.#currentMusicTrackName, fadeLength, true);
       }
     }
   }
   
-  #startBgmPlayback(trackName, fadeLength, isResuming) {
+  #startMusicPlayback(trackName, fadeLength, isResuming) {
     let affectingFadeValue = (fadeLength > 0) ? (1 / fadeLength) : 0;
     
     let track = this.#data.music[trackName];
@@ -1917,7 +1937,7 @@ export class MintCrate {
     track.state = this.#MUSIC_STATES.PLAYING;
   }
   
-  #stopBgmPlayback(trackName, fadeLength, isPausing) {
+  #stopMusicPlayback(trackName, fadeLength, isPausing) {
     let affectingFadeValue = (fadeLength > 0) ? (1 / fadeLength) : 0;
     
     let track = this.#data.music[this.#currentMusicTrackName];
@@ -1944,7 +1964,7 @@ export class MintCrate {
     }
   }
   
-  setBgmVolume(newVolume) {
+  setMusicVolume(newVolume) {
     // Constrain volume value
     newVolume = MintMath.clamp(newVolume, 0, 1);
     
@@ -1958,15 +1978,15 @@ export class MintCrate {
     this.#masterVolume.bgm = newVolume;
   }
   
-  adjustBgmVolume(newVolume) {
-    this.setBgmVolume(this.#masterVolume.bgm + newVolume);
+  adjustMusicVolume(newVolume) {
+    this.setMusicVolume(this.#masterVolume.bgm + newVolume);
   }
   
-  getBgmVolume() {
+  getMusicVolume() {
     return this.#masterVolume.bgm;
   }
   
-  setBgmPitch(newPitch) {
+  setMusicPitch(newPitch) {
     // Constrain pitch value
     newPitch = MintMath.clamp(newPitch, 0.1, 30);
     
@@ -1980,11 +2000,15 @@ export class MintCrate {
     this.#masterBgmPitch = newPitch;
   }
   
-  adjustBgmPitch(newPitch) {
-    this.setBgmPitch(this.#masterBgmPitch + newPitch);
+  getMusicPitch() {
+    return this.#masterBgmPitch;
   }
   
-  setSfxVolume(newVolume) {
+  adjustMusicPitch(newPitch) {
+    this.setMusicPitch(this.#masterBgmPitch + newPitch);
+  }
+  
+  setSoundVolume(newVolume) {
     // Constrain volume value
     newVolume = MintMath.clamp(newVolume, 0, 1);
     
@@ -1998,11 +2022,15 @@ export class MintCrate {
     this.#masterVolume.sfx = newVolume;
   }
   
-  getSfxVolume() {
+  adjustSoundVolume(volumeAmount) {
+    this.setSoundVolume(this.#masterVolume.sfx + volumeAmount);
+  }
+  
+  getSoundVolume() {
     return this.#masterVolume.sfx;
   }
   
-  #bgmTrackIsLoaded() {
+  #musicTrackIsLoaded() {
     return (this.#currentMusicTrackName !== "");
   }
   
@@ -2062,26 +2090,7 @@ export class MintCrate {
   // Runtime
   // ---------------------------------------------------------------------------
   
-  setScreenScale(scale) {
-    this.#screenScale = scale;
-    
-    let newWidth  = this.#BASE_WIDTH  * scale;
-    let newHeight = this.#BASE_HEIGHT * scale;
-    
-    this.#frontCanvas.width    = newWidth;
-    this.#frontCanvas.height   = newHeight;
-    
-    this.#backCanvas.width    = newWidth;
-    this.#backCanvas.height   = newHeight;
-    
-    this.#frontContext.imageSmoothingEnabled = false;
-    this.#backContext.imageSmoothingEnabled = false;
-  }
-  
-  getScreenScale() {
-    return this.#screenScale;
-  }
-  
+  // Optional function that runs for EVERY room -- a global update, basically
   setGlobalUpdateFunction(func) {
     this.#globalUpdateFunction = func;
   }
@@ -2180,12 +2189,14 @@ export class MintCrate {
     
     // Clear out loaded music track name if it's come to its natural end
     if (
-      this.#bgmTrackIsLoaded()
+      this.#musicTrackIsLoaded()
       && this.#data.music[this.#currentMusicTrackName].source.hasEnded()
     ) {
       let track = this.#data.music[this.#currentMusicTrackName];
-      track.state = this.#MUSIC_STATES.STOPPED;
-      this.#currentMusicTrackName = "";
+      if (track.state !== this.#MUSIC_STATES.PAUSED) {
+        track.state = this.#MUSIC_STATES.STOPPED;
+        this.#currentMusicTrackName = "";
+      }
     }
     
     // Reset collision states for actives

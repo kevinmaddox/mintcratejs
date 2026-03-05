@@ -137,4 +137,10 @@ export class InputHandler {
     // Return held state
     return this.#inputs[inputName].held;
   }
+  
+  setRepeatValues(repeatWaitTime, repeatDelay) {
+    // Set repeat wait time and delay values
+    this.#repeatWaitTime = repeatWaitTime;
+    this.#repeatDelay    = repeatDelay;
+  }
 }

@@ -168,17 +168,3 @@ export class Entity {
     this.#opacity = MintMath.clamp(this.#opacity + opacity, 0, 1);
   }
 }
-
-/*
-for (let i = 0; i < enemies.length; i++)
-  
-for (let i = 0; i < this.mint.actives.enemies; i++)
-  
-this.mint.actives.harpy = this.mint.addActive(blahblah);
-this.mint.actives.harpy.x += 1
-harpy.x += 1
-
-this.mint.iterate(this.mint.actives.enemies, (enemy) => {
-  enemy.destroy();
-});
-*/

@@ -1,11 +1,11 @@
 - Short-term -------------------------------------------------------------------
-[ ] Add a default collider to Backdrops and make them collision-testable
-  - testActiveCollision() should become testEntityCollision()
+[ ] Ensure that entities are effectively "zeroed-out" when destroyed
 [ ] Cross-browser testing
-[/] Look through and take care of TODOs
+[/] Look through code and take care of TODOs
+[ ] Move examples into their own GitHub project
 
 - Long-term --------------------------------------------------------------------
-[ ] Code completion - ensure all functions from old Lua code are implemented
+[x] Code completion - ensure all functions from old Lua code are implemented
 [ ] Ensure the inactive pause screen text can fit most reasonable sizes
   - Will need a smaller font for very tiny resolutions
 [ ] General cleanup and organization
@@ -17,8 +17,12 @@
 [ ] Should we halt game logic when the fade delay of a room transition is hit?
 
 - Outstanding Bugs -------------------------------------------------------------
+[ ] There's still some bugginess with song pausing/resuming. It may have to do
+    with looping.
 
 - Done -------------------------------------------------------------------------
+[x] Change "sfx" and "bgm" back to "sound" and "music"? - Yes
+  - sound.js should have a different name, like audio.js instead
 [x] Azure Flight - Moving quickly from one menu item to another, while holding
     down the mouse, will make the sound cancel itself out
 [x] Azure Flight - in the block for "Reposition boulders if they've left the

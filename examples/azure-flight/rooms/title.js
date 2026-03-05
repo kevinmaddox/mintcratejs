@@ -14,7 +14,7 @@ export class Title {
     }
     mint.configureRoomFadeOut(15, 30, {r: 0, g: 0, b: 0});
     
-    mint.playBgm('select-your-whatever-2k15');
+    mint.playMusic('select-your-whatever-2k15');
     
     this.background = mint.bg.addBackdrop('menu-bg', 0, 0, {width: 272, height: 192});
     this.background.setX(-this.background.getImageWidth());
@@ -45,7 +45,7 @@ export class Title {
       'BGM', 'a',
       (enabled) => {
         mint.globals.bgmOn = enabled;
-        mint.setBgmVolume((enabled) ? 1 : 0);
+        mint.setMusicVolume((enabled) ? 1 : 0);
       }, true, mint.globals.bgmOn
     );
     
@@ -55,7 +55,7 @@ export class Title {
       'SFX', 'd',
       (enabled) => {
         mint.globals.sfxOn = enabled;
-        mint.setSfxVolume((enabled) ? 1 : 0);
+        mint.setSoundVolume((enabled) ? 1 : 0);
       }, true, mint.globals.sfxOn
     );
   }
