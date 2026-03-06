@@ -51,9 +51,7 @@ export class Entity {
   // ---------------------------------------------------------------------------
   
   destroy() {
-    if (this.#wasDestroyed) {
-      return;
-    }
+    if (this.#wasDestroyed) { return; }
     
     // Remove entity from MintCrate's linear instance list
     let linearInstanceIndex =
@@ -63,6 +61,14 @@ export class Entity {
     // Remove entity from MintCrate's draw order table
     let drawIndex = this.#drawOrder.findIndex((entity) => entity === this);
     this.#drawOrder.splice(drawIndex, 1);
+    
+    // Zero out properties
+    this.#entityType = "";
+    this.#name       = "";
+    this.#x          = 0;
+    this.#y          = 0;
+    this.#isVisible  = false;
+    this.#opacity    = 0;
     
     // Mark entity as having been deleted
     this.#wasDestroyed = true;
@@ -93,30 +99,28 @@ export class Entity {
   }
   
   setX(x) {
+    if (this.#wasDestroyed) { return; }
+    
     // Update position
     this.#x = x;
-    
-    // Update collider's position
-    // if (this._collider) {
-      // this._collider.x = this.#x + this._colliderOffsetX
-    // }
   }
   
   setY(y) {
+    if (this.#wasDestroyed) { return; }
+    
     // Update position
     this.#y = y;
-    
-    // Update collider's position
-    // if (this._collider) {
-      // this._collider.y = this.#y + this._colliderOffsetY
-    // }
   }
   
   moveX(pixels) {
+    if (this.#wasDestroyed) { return; }
+    
     this.setX(this.#x + pixels);
   }
   
   moveY(pixels) {
+    if (this.#wasDestroyed) { return; }
+    
     this.setY(this.#y + pixels);
   }
   
@@ -125,21 +129,29 @@ export class Entity {
   // ---------------------------------------------------------------------------
   
   bringForward() {
+    if (this.#wasDestroyed) { return; }
+    
     let index = this.#drawOrder.findIndex((entity) => entity === this);
     MintUtil.array.moveItemRight(this.#drawOrder, index);
   }
   
   sendBackward() {
+    if (this.#wasDestroyed) { return; }
+    
     let index = this.#drawOrder.findIndex((entity) => entity === this);
     MintUtil.array.moveItemLeft(this.#drawOrder, index);
   }
   
   bringToFront() {
+    if (this.#wasDestroyed) { return; }
+    
     let index = this.#drawOrder.findIndex((entity) => entity === this);
     MintUtil.array.moveItemToEnd(this.#drawOrder, index);
   }
   
   sendToBack() {
+    if (this.#wasDestroyed) { return; }
+    
     let index = this.#drawOrder.findIndex((entity) => entity === this);
     MintUtil.array.moveItemToStart(this.#drawOrder, index);
   }
@@ -153,6 +165,8 @@ export class Entity {
   }
   
   setVisibility(isVisible) {
+    if (this.#wasDestroyed) { return; }
+    
     this.#isVisible = isVisible;
   }
   
@@ -161,10 +175,14 @@ export class Entity {
   }
   
   setOpacity(opacity) {
+    if (this.#wasDestroyed) { return; }
+    
     this.#opacity = MintMath.clamp(opacity, 0, 1);
   }
   
   adjustOpacity(opacity) {
+    if (this.#wasDestroyed) { return; }
+    
     this.#opacity = MintMath.clamp(this.#opacity + opacity, 0, 1);
   }
 }

@@ -1,15 +1,21 @@
 - Short-term -------------------------------------------------------------------
-[ ] Ensure that entities are effectively "zeroed-out" when destroyed
+[x] Ensure that entities are effectively "zeroed-out" when destroyed
+[ ] Better visual branding
+  [ ] MintCrate logo/graphic
+  [ ] Boot sequence visuals
 [ ] Cross-browser testing
 [/] Look through code and take care of TODOs
 [ ] Move examples into their own GitHub project
 
 - Long-term --------------------------------------------------------------------
+[ ] Error-handler screen
+  - Basically a screen that halts game execution. This should be used for things
+    like bad function params or a Paragraph class text parsing timeout error.
 [x] Code completion - ensure all functions from old Lua code are implemented
 [ ] Ensure the inactive pause screen text can fit most reasonable sizes
   - Will need a smaller font for very tiny resolutions
 [ ] General cleanup and organization
-[ ] Function comments
+[ ] Function comments/documentation
 [ ] Function validation
 [ ] Docs & tutorials
 

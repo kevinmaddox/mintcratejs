@@ -14,8 +14,6 @@ export class Active extends Entity {
   // Member variables
   //----------------------------------------------------------------------------
   
-  #name;
-  
   #angle;
   #rotatedWidth;
   #rotatedHeight;
@@ -101,10 +99,54 @@ export class Active extends Entity {
   }
   
   // ---------------------------------------------------------------------------
+  // Methods for management
+  // ---------------------------------------------------------------------------
+  
+  destroy() {
+    if (!super.exists()) { return; }
+    
+    super.destroy();
+    
+    // Zero out properties
+    this.#rotatedWidth  = 0;
+    this.#rotatedHeight = 0;
+    
+    this.#scaleX = 0;
+    this.#scaleY = 0;
+    this.#flippedHorizontally = false;
+    this.#flippedVertically   = false;
+    
+    this.#collider = {
+      s         : Active.COLLIDER_SHAPES.NONE,
+      x         : 0,
+      y         : 0,
+      w         : 0,
+      h         : 0,
+      r         : 0,
+      collision : false,
+      mouseOver : false
+    };
+    this.#colliderOffsetX = 0;
+    this.#colliderOffsetY = 0;
+    
+    this.#animationIsLoaded    = false;
+    this.#animationList        = [];
+    this.#animationName        = "";
+    this.#currentAnimation     = false;
+    this.#animationFrameNumber = 0;
+    this.#animationFrameTimer  = 0;
+    
+    this.#actionPointX = 0;
+    this.#actionPointY = 0;
+  }
+  
+  // ---------------------------------------------------------------------------
   // Methods for managing positions
   // ---------------------------------------------------------------------------
   
   setX(x) {
+    if (!super.exists()) { return; }
+    
     super.setX(x);
     
     // Update collider's coordinate
@@ -114,6 +156,8 @@ export class Active extends Entity {
   }
   
   setY(y) {
+    if (!super.exists()) { return; }
+    
     super.setY(y);
     
     // Update collider's coordinate
@@ -131,14 +175,20 @@ export class Active extends Entity {
   }
   
   setAngle(degrees) {
+    if (!super.exists()) { return; }
+    
     this.#angle = degrees;
   }
   
   rotate(degrees) {
+    if (!super.exists()) { return; }
+    
     this.#angle += degrees;
   }
   
   angleLookAtPoint(bx, by) {
+    if (!super.exists()) { return; }
+    
     // Determine correct angle which faces the point
     let ax = this.getX();
     let ay = this.getY();
@@ -162,18 +212,26 @@ export class Active extends Entity {
   }
   
   setScaleX(scaleX) {
+    if (!super.exists()) { return; }
+    
     this.#scaleX = scaleX;
   }
   
   setScaleY(scaleY) {
+    if (!super.exists()) { return; }
+    
     this.#scaleY = scaleY;
   }
   
   scaleX(scaleX) {
+    if (!super.exists()) { return; }
+    
     this.#scaleX += scaleX;
   }
   
   scaleY(scaleY) {
+    if (!super.exists()) { return; }
+    
     this.#scaleY += scaleY;
   }
   
@@ -186,6 +244,8 @@ export class Active extends Entity {
   }
   
   flipHorizontally(isFlipped = null) {
+    if (!super.exists()) { return; }
+    
     if (isFlipped === null) {
       isFlipped = (!this.#flippedHorizontally);
     }
@@ -194,6 +254,8 @@ export class Active extends Entity {
   }
   
   flipVertically(isFlipped = null) {
+    if (!super.exists()) { return; }
+    
     if (isFlipped === null) {
       isFlipped = (!this.#flippedVertically);
     }
@@ -214,6 +276,8 @@ export class Active extends Entity {
   }
   
   playAnimation(animationName, forceRestart = false) {
+    if (!super.exists()) { return; }
+    
     // Set animation name so engine core can draw it
     this.#animationName = animationName;
     
@@ -373,6 +437,8 @@ export class Active extends Entity {
   }
   
   #updateActionPoints() {
+    if (!super.exists()) { return; }
+    
     // Get un-transformed action points for current animation frame
     let ax = 0;
     let ay = 0;

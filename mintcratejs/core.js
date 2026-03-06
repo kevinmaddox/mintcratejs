@@ -390,38 +390,73 @@ export class MintCrate {
     // state = 1: Mouse hovering
     
     let graphic = this.#systemImages['start'];
+    let font = this.#data.fonts['system_boot'];
     
     this.#clearCanvas();
     
+    this.#backContext.fillStyle = '#7e9183';
+    this.#backContext.fillRect(0, 0, this.#BASE_WIDTH, this.#BASE_HEIGHT);
+    
     this.#backContext.drawImage(
-      this.#systemImages['start'],                    // image
+      graphic,                                        // image
       (graphic.width / 2) * state,                    // sx
       0,                                              // sy
       graphic.width / 2,                              // sWidth
       graphic.height,                                 // sHeight
-      (this.#BASE_WIDTH  / 2) - (graphic.width  / 2), // dx
-      (this.#BASE_HEIGHT / 2) - (graphic.height / 2), // dy
+      (this.#BASE_WIDTH  / 2) - (graphic.width  / 4), // dx
+      (this.#BASE_HEIGHT / 2) - (graphic.height / 4), // dy
       graphic.width / 2,                              // dWidth,
       graphic.height                                  // dHeight
+    );
+    
+    this.#drawText(
+      [
+        "CLICK TO LAUNCH"
+      ],
+      font,
+      (this.#BASE_WIDTH  / 2),
+      font.charHeight,
+      0,
+      "center"
+    );
+    
+    this.#drawText(
+      [
+        "POWERED BY",
+        "MINTCRATE VER 1.02A"
+      ],
+      font,
+      (this.#BASE_WIDTH  / 2),
+      this.#BASE_HEIGHT - (font.charHeight * 2.5),
+      0,
+      "center"
     );
     
     this.#renderFrame();
   }
   
   #displayLoadingScreen(statusMessage) {
+    let graphic = this.#systemImages['logo'];
     let font = this.#data.fonts['system_boot'];
-    let msgWidth = font.charWidth * statusMessage.length;
     
     this.#clearCanvas();
     
-    this.#backContext.fillStyle = 'gray';
+    this.#backContext.fillStyle = '#7e9183';
     this.#backContext.fillRect(0, 0, this.#BASE_WIDTH, this.#BASE_HEIGHT);
+    
+    this.#backContext.drawImage(
+      graphic,                                        // image
+      (this.#BASE_WIDTH  / 2) - (graphic.width  / 2), // dx
+      (this.#BASE_HEIGHT / 2) - (graphic.height / 2)  // dy
+    );
     
     this.#drawText(
       [statusMessage],
       font,
-      (this.#BASE_WIDTH  / 2) - (msgWidth        / 2),
-      (this.#BASE_HEIGHT / 2) - (font.charHeight / 2)
+      (this.#BASE_WIDTH  / 2),
+      this.#BASE_HEIGHT - (font.charHeight * 2),
+      0,
+      "center"
     );
     
     this.#renderFrame();

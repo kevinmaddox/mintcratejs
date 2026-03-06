@@ -54,6 +54,31 @@ export class Paragraph extends Entity {
     this.#hyphenate = hyphenate;
   }
   
+  // ---------------------------------------------------------------------------
+  // Methods for management
+  // ---------------------------------------------------------------------------
+  
+  destroy() {
+    if (!super.exists()) { return; }
+    
+    super.destroy();
+    
+    // Zero out properties
+    this.#glyphWidth      = 0;
+    this.#glyphHeight     = 0;
+    this.#maxCharsPerLine = 0;
+    this.#lineSpacing     = 0;
+    this.#wordWrap        = false;
+    this.#alignment       = "left";
+    this.#hyphenate       = false;
+    this.#textContent     = "";
+    this.#textLines       = [];
+  }
+  
+  // ---------------------------------------------------------------------------
+  // Methods for handling the paragraph's text content
+  // ---------------------------------------------------------------------------
+  
   getTextContent() {
     return this.#textContent;
   }
@@ -159,15 +184,19 @@ export class Paragraph extends Entity {
       
       maxParses++;
       if (maxParses > 9999) {
+        // TODO: Stop game and throw some kind of error
         console.log('PARSING ERROR!');
         break;
-        // TODO: Throw some kind of error
       }
     }
     
     // Store formatted lines
     this.#textLines = strLines;
   }
+  
+  // ---------------------------------------------------------------------------
+  // Methods for retrieving data about the Paragraph
+  // ---------------------------------------------------------------------------
   
   getGlyphWidth() {
     return this.#glyphWidth;
