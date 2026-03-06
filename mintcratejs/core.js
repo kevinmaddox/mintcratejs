@@ -6,6 +6,7 @@
 'use strict';
 
 import { Active }        from "./active.js";
+import { Shape }         from "./shape.js";
 import { InputHandler }  from "./inputhandler.js";
 import { Audio }         from "./audio.js";
 import { EntityFactory } from "./entityfactory.js";
@@ -283,7 +284,8 @@ export class MintCrate {
     this.#linearInstanceLists = {
       actives    : [],
       backdrops  : [],
-      paragraphs : []
+      paragraphs : [],
+      shapes     : []
     }
     
     this.#drawOrders = {
@@ -2676,11 +2678,12 @@ export class MintCrate {
         [
           "ACTS: " + this.#linearInstanceLists.actives.length,
           "BAKS: " + this.#linearInstanceLists.backdrops.length,
-          "TEXT: " + this.#linearInstanceLists.paragraphs.length
+          "TEXT: " + this.#linearInstanceLists.paragraphs.length,
+          "GEOS: " + this.#linearInstanceLists.shapes.length
         ],
         this.#data.fonts['system_counter'],
         0,
-        this.#BASE_HEIGHT - (3 * this.#data.fonts['system_counter'].charHeight)
+        this.#BASE_HEIGHT - (4 * this.#data.fonts['system_counter'].charHeight)
       );
       
       this.#drawText(
@@ -2960,6 +2963,91 @@ export class MintCrate {
           entity.getLineSpacing(),
           entity.getAlignment()
         );
+      
+      // Draw shapes
+      } else if (entityType === "shape") {
+        if (entity.getType() === Shape.TYPES.LINE) {
+          // Set drawing properties
+          let color = entity.getColor();
+          
+          this.#backContext.strokeStyle = MintUtil.rgbToString(color.r, color.g, color.b);
+          this.#backContext.lineWidth = entity.getLineWidth();
+          this.#backContext.lineCap = "round";
+          this.#backContext.globalAlpha = entity.getOpacity();
+          
+          // Draw line
+          this.#backContext.beginPath();
+          
+          this.#backContext.moveTo(
+            entity.getX() - this.#camera.x,
+            entity.getY() - this.#camera.y
+          );
+          
+          this.#backContext.lineTo(
+            entity.getX2() - this.#camera.x,
+            entity.getY2() - this.#camera.y
+          );
+          
+          this.#backContext.stroke();
+        
+        } else if (entity.getType() === Shape.TYPES.RECTANGLE) {
+          // Set drawing properties
+          let color = entity.getColor();
+          let borderColor = entity.getBorderColor();
+          
+          this.#backContext.fillStyle = MintUtil.rgbToString(color.r, color.g, color.b);
+          this.#backContext.strokeStyle = MintUtil.rgbToString(borderColor.r, borderColor.g, borderColor.b);
+          this.#backContext.lineWidth = entity.getBorderWidth();
+          this.#backContext.globalAlpha = entity.getOpacity();
+          
+          // Draw rectangle
+          this.#backContext.fillRect(
+            entity.getX() - this.#camera.x,
+            entity.getY() - this.#camera.y,
+            entity.getWidth(),
+            entity.getHeight(),
+          );
+          
+          if (entity.getBorderWidth() > 0) {
+            this.#backContext.strokeRect(
+              entity.getX() + 0.5 - this.#camera.x,
+              entity.getY() + 0.5 - this.#camera.y,
+              entity.getWidth() - 1,
+              entity.getHeight() - 1,
+            );
+          }
+        
+        } else if (entity.getType() === Shape.TYPES.CIRCLE) {
+          // Set drawing properties
+          let color = entity.getColor();
+          let borderColor = entity.getBorderColor();
+          
+          this.#backContext.fillStyle = MintUtil.rgbToString(color.r, color.g, color.b);
+          this.#backContext.strokeStyle = MintUtil.rgbToString(borderColor.r, borderColor.g, borderColor.b);
+          this.#backContext.lineWidth = entity.getBorderWidth();
+          this.#backContext.globalAlpha = entity.getOpacity();
+          
+          // Draw circle
+          this.#backContext.beginPath();
+          this.#backContext.arc(
+            entity.getX() - this.#camera.x,
+            entity.getY() - this.#camera.y,
+            entity.getRadius(),
+            0,
+            2 * Math.PI
+          );
+          
+          this.#backContext.fill();
+          
+          if (entity.getBorderWidth() > 0) {
+            this.#backContext.stroke();
+          }
+        }
+        
+        // Reset geometric drawing properties
+        this.#backContext.lineCap = "butt";
+        this.#backContext.lineWidth = 1;
+        this.#backContext.globalAlpha = 1.0;
       }
     }
   }

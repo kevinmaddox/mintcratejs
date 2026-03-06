@@ -5,9 +5,10 @@
 
 'use strict';
 
-import { Active    } from "./active.js";
-import { Backdrop  } from "./backdrop.js";
+import { Active }    from "./active.js";
+import { Backdrop }  from "./backdrop.js";
 import { Paragraph } from "./paragraph.js";
+import { Shape }     from "./shape.js";
 
 export class EntityFactory {
   
@@ -146,5 +147,69 @@ export class EntityFactory {
     
     // Return new entity
     return paragraph;
+  }
+  
+  addLine(x1, y1, x2, y2, options = {}) {
+    let line = new Shape(
+      this.#linearInstanceLists.shapes,
+      this.#drawOrders,
+      x1,
+      y1,
+      Shape.TYPES.LINE,
+      {
+        x2: x2,
+        y2: y2,
+        lineWidth: options.width ?? 1
+      },
+      options.color ?? {r: 128, g: 128, b: 128}
+    );
+    
+    this.#linearInstanceLists.shapes.push(line);
+    this.#drawOrders.push(line);
+    
+    return line;
+  }
+  
+  addRectangle(x, y, width, height, options = {}) {
+    let rectangle = new Shape(
+      this.#linearInstanceLists.shapes,
+      this.#drawOrders,
+      x,
+      y,
+      Shape.TYPES.RECTANGLE,
+      {
+        width: width,
+        height: height
+      },
+      options.color       ?? {r: 128, g: 128, b: 128},
+      options.borderColor ?? {r:  64, g:  64, b:  64},
+      options.borderWidth ?? 0
+    );
+    
+    this.#linearInstanceLists.shapes.push(rectangle);
+    this.#drawOrders.push(rectangle);
+    
+    return rectangle;
+  }
+  
+  addCircle(x, y, radius, options = {}) {
+    let circle = new Shape(
+      this.#linearInstanceLists.shapes,
+      this.#drawOrders,
+      x,
+      y,
+      Shape.TYPES.CIRCLE,
+      {
+        radius: radius
+      },
+      options.color       ?? {r: 128, g: 128, b: 128},
+      options.borderColor ?? {r:  64, g:  64, b:  64},
+      options.borderWidth ?? 0
+    );
+    
+    this.#linearInstanceLists.shapes.push(circle);
+    this.#drawOrders.push(circle);
+    
+    return circle;
   }
 }

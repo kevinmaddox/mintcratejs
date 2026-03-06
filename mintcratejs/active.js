@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------------
 // MintCrate - Active
-// A static entity intended for background visuals
+// An animated entity that supports collisions and action points
 // ---------------------------------------------------------------------------
 
 'use strict';
