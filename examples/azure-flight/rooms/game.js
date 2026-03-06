@@ -34,7 +34,7 @@ export class Game {
     mint.playMusic('tangent');
     
     this.WATER_LINE_Y = 156;
-    // this.waterLine = mint.fg.addActive('water', 0, 156);
+    this.waterLine = mint.fg.addRectangle(0, this.WATER_LINE_Y, mint.getBaseWidth(), mint.getBaseHeight() - this.WATER_LINE_Y, {color: {r: 135, g: 166, b: 225}});
     
     this.dangerIconDown = mint.fg.addActive('danger-down', 201, 133);
     this.dangerIconUp = mint.fg.addActive('danger-up', 201, 3);
@@ -298,7 +298,7 @@ export class Game {
       }
       
       // Rearrange draw orders
-      // this.waterLine.bringToFront();
+      this.waterLine.bringToFront();
       for (const shadow of this.shadows) {
         shadow.sendToBack();
         shadow.bottom.bringToFront();
@@ -316,12 +316,10 @@ export class Game {
         
         this.state = 'gameover';
         
-        this.overlayBlack = mint.fg.addActive('overlay', 0, 0);
+        this.overlayBlack = mint.fg.addRectangle(0, 0, mint.getBaseWidth(), mint.getBaseHeight(), {color: {r: 0, g: 0, b: 0}});
         this.overlayBlack.setOpacity(0.5);
-        this.overlayBlack.playAnimation('black');
         
-        this.overlayWhite = mint.fg.addActive('overlay', 0, 0);
-        this.overlayWhite.playAnimation('white');
+        this.overlayWhite = mint.fg.addRectangle(0, 0, mint.getBaseWidth(), mint.getBaseHeight(), {color: {r: 255, g: 255, b: 255}});
       }
       
     // State: Game over screen -------------------------------------------------

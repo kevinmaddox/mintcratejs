@@ -1,8 +1,13 @@
 - Short-term -------------------------------------------------------------------
 [x] Ensure that entities are effectively "zeroed-out" when destroyed
-[ ] Better visual branding
-  [ ] MintCrate logo/graphic
-  [ ] Boot sequence visuals
+[x] Better visual branding
+  [x] MintCrate logo/graphic
+  [x] Boot sequence visuals
+[/] New Entity class: Shape (line, rectangle, circle)
+  [x] Main implementation
+  - Do we want debug overlays for shapes?
+[ ] Fix game-inactive overlay to ensure text is readable and wraps
+[ ] Sprite gallery example
 [ ] Cross-browser testing
 [/] Look through code and take care of TODOs
 [ ] Move examples into their own GitHub project

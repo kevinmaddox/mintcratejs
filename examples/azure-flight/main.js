@@ -100,10 +100,6 @@ mint.defineActives([
   {name: 'boulder_collider', radius: 12},
   {name: 'boulder_default',  offset: [-12,-12]},
   
-  // Water line
-  {name: 'water'},
-  {name: 'water_default'},
-  
   // Water splash
   {name: 'splash'},
   {name: 'splash_default', offset: [-13, -30]},
@@ -120,11 +116,6 @@ mint.defineActives([
   {name: 'star_02', offset: [-4,-4]},
   {name: 'star_03', offset: [-3,-3]},
   {name: 'star_04', offset: [-5,-2]},
-  
-  // Screen flash/dim overlays
-  {name: 'overlay'},
-  {name: 'overlay_white'},
-  {name: 'overlay_black'},
   
   // Shadow
   {name: 'shadow-top'},

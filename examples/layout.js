@@ -42,6 +42,8 @@ let controlsTable = createElement('table');
 let cells = [];
 cells.push([createElement('th', '', 'Controls')]);
 
+GAME_INFO.CONTROLS.KEYBOARD.push(["1", "Toggle debug overlay"]);
+
 for (const controlsType of ['Keyboard', 'Mouse']) {
   if (GAME_INFO.CONTROLS[controlsType.toUpperCase()]) {
     cells.push([createElement('th', '', controlsType)]);
