@@ -1,4 +1,7 @@
 # MintCrateJS
+
+![mintcrate logo](https://raw.githubusercontent.com/kevinmaddox/mintcratejs/refs/heads/main/logo.png)
+
 Rapid game development framework for developing prototypes and simple games. Favors fun and ease of use.
 
 ## Licensing for Example Projects
