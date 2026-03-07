@@ -79,15 +79,16 @@ mint.defineActives([
   
   // Harpy
   {name: 'harpy'},
-  {name: 'harpy_collider', radius: 4},
-  {name: 'harpy_default', offset: [-10, -8]},
-  {name: 'harpy_fall',    offset: [-10, -8]},
-  {name: 'harpy_flap',    frameCount: 6, frameDuration: 2, offset: [-11, -9]},
-  {name: 'harpy_hit01',   offset: [-10, -10]},
-  {name: 'harpy_hit02',   offset: [-10, -10]},
-  {name: 'harpy_hit03',   offset: [-10, -10]},
-  {name: 'harpy_hit04',   offset: [-10, -10]},
-  {name: 'harpy_hit05',   offset: [-10, -10]},
+  {name: 'harpy_collider',  radius: 4},
+  {name: 'harpy_default',   offset: [-10, -8]},
+  {name: 'harpy_fall',      offset: [-10, -8]},
+  {name: 'harpy_flap',      frameCount: 6, frameDuration: 2, offset: [-11, -9], loop: true},
+  {name: 'harpy_hit01',     offset: [-10, -10]},
+  {name: 'harpy_hit02',     offset: [-10, -10]},
+  {name: 'harpy_hit03',     offset: [-10, -10]},
+  {name: 'harpy_hit04',     offset: [-10, -10]},
+  {name: 'harpy_hit05',     offset: [-10, -10]},
+  {name: 'harpy_resurface', frameCount: 4, frameDuration: 5, offset: [-11, -9]},
   
   // Platform posts
   {name: 'post-top'},

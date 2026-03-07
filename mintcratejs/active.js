@@ -32,6 +32,7 @@ export class Active extends Entity {
   #animationList;
   #animationName;
   #currentAnimation;
+  #defaultAnimation;
   #animationFrameNumber;
   #animationFrameTimer;
   
@@ -90,6 +91,7 @@ export class Active extends Entity {
     this.#animationList        = animationList;
     this.#animationName        = initialAnimationName;
     this.#currentAnimation     = initialAnimation;
+    this.#defaultAnimation     = initialAnimation;
     this.#animationFrameNumber = 1;
     this.#animationFrameTimer  = 0;
     
@@ -299,12 +301,17 @@ export class Active extends Entity {
       this.#animationFrameTimer = 0;
     }
     
-    // Restart animation if we've gone past the last frame
     if (this.#animationFrameNumber > animation.frameCount) {
       this.#animationFrameNumber = 1;
+      
+      // Reset to the default animation if it's not set to loop
+      if (!animation.loop) {
+        animation = this.#defaultAnimation;
+        this.#animationName = animation.name;
+      }
     }
     
-    // Store current animation name so engine core can draw it
+    // Store current animation for pulling data from it when needed
     this.#currentAnimation = animation;
   }
   

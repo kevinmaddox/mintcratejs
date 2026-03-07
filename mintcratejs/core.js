@@ -623,6 +623,7 @@ export class MintCrate {
           item.actionPoints  = item.actionPoints  ?? [[0, 0]];
           item.frameCount    = item.frameCount    ?? 1;
           item.frameDuration = item.frameDuration ?? 20;
+          item.loop          = item.loop          ?? false;
           
           // Split name to get Active's name and animation
           let nameParts = item.name.split('_');
@@ -650,6 +651,8 @@ export class MintCrate {
           // Store animation data
           let img = loadedImages[item.name];
           let animation = {
+            name          : animationName,
+            fullName      : item.name,
             img           : img,
             quads         : [],
             offsetX       : item.offset[0],
@@ -658,7 +661,8 @@ export class MintCrate {
             frameCount    : item.frameCount,
             frameDuration : item.frameDuration,
             frameWidth    : img.width / item.frameCount,
-            frameHeight   : img.height
+            frameHeight   : img.height,
+            loop          : item.loop
           };
           
           // Store animation

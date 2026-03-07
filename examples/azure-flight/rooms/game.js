@@ -33,6 +33,8 @@ export class Game {
     
     mint.playMusic('tangent');
     
+    this.gameEnded = false;
+    
     this.WATER_LINE_Y = 156;
     this.waterLine = mint.fg.addRectangle(0, this.WATER_LINE_Y, mint.getBaseWidth(), mint.getBaseHeight() - this.WATER_LINE_Y, {color: {r: 135, g: 166, b: 225}});
     
@@ -75,6 +77,7 @@ export class Game {
     this.harpy.treadDelay = 0;
     this.harpy.wasHit = false;
     this.harpy.hitAngle = 0;
+    this.harpy.floatBobVal = 0;
     
     this.TOTAL_BOULDERS = 5;
     this.TOTAL_BOULDER_ROWS = 6;
@@ -320,16 +323,30 @@ export class Game {
         this.overlayBlack.setOpacity(0.5);
         
         this.overlayWhite = mint.fg.addRectangle(0, 0, mint.getBaseWidth(), mint.getBaseHeight(), {color: {r: 255, g: 255, b: 255}});
+        
+        let harpyShadow = this.shadows.find((shadow) => shadow.entity === this.harpy);
+        harpyShadow.hide();
       }
       
     // State: Game over screen -------------------------------------------------
     } else if (this.state === "gameover") {
-      if (this.harpy.exists()) {
+      if (!this.gameEnded) {
         if (this.score > mint.globals.highScore) {
           mint.globals.highScore = this.score;
         }
         
-        this.harpy.destroy();
+        this.harpy.hide();
+        
+        mint.delayFunction(() => {
+          this.createWaterSplash(this.harpy.getX(), 0.0667, 0.05);
+          this.createDroplets(this.harpy.getX(), 4, true);
+          this.harpy.show();
+          this.harpy.playAnimation('resurface');
+        }, 30);
+        
+        mint.repeatFunction(() => {
+          this.harpy.floatBobVal = (this.harpy.floatBobVal === 0) ? 1 : 0;
+        }, 30);
         
         mint.fg.addParagraph('ui-main', mint.getBaseWidth() / 2, 35,
           'SCORE '+this.score, {alignment: 'center'});
@@ -353,7 +370,14 @@ export class Game {
             mint.changeRoom(mint.roomList.Title, {fadeMusic: true});
           }
         );
+        
+        this.gameEnded = true;
       }
+      
+      this.harpy.xSpeed = 0;
+      this.harpy.ySpeed = 0;
+      this.harpy.sendToBack();
+      this.harpy.setY(this.WATER_LINE_Y - 6 + this.harpy.floatBobVal);
       
       // Fade flash overlay
       this.overlayWhite.adjustOpacity(-0.05);

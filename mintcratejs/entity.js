@@ -164,6 +164,18 @@ export class Entity {
     return this.#isVisible;
   }
   
+  show() {
+    if (this.#wasDestroyed) { return; }
+    
+    this.setVisibility(true);
+  }
+  
+  hide() {
+    if (this.#wasDestroyed) { return; }
+    
+    this.setVisibility(false);
+  }
+  
   setVisibility(isVisible) {
     if (this.#wasDestroyed) { return; }
     
