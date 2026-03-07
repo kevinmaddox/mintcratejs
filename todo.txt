@@ -8,6 +8,8 @@
   - Do we want debug overlays for shapes?
 [ ] Fix game-inactive overlay to ensure text is readable and wraps
 [ ] Sprite gallery example
+[ ] Font tinting
+[ ] Entity blend modes
 [ ] Cross-browser testing
 [/] Look through code and take care of TODOs
 [ ] Move examples into their own GitHub project
@@ -25,6 +27,8 @@
 [ ] Docs & tutorials
 
 - Ponderings -------------------------------------------------------------------
+[ ] Change Active's getSpriteHeight to getImageHeight to make it consistent
+    with Backdrop's corresponding functions?
 [ ] Should we halt game logic when the fade delay of a room transition is hit?
 
 - Outstanding Bugs -------------------------------------------------------------

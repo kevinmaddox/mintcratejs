@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MintCrate Examples</title>
+  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="../style.css"/>
+  <script>
+    // This is the data used for constructing the layout of this example page.
+    // It has nothing to do with actually using MintCrate.
+    var GAME_INFO = {
+      TITLE: "Sprite Viewer",
+      CONTROLS: {
+        KEYBOARD: [
+          ['WSAD', 'Menu buttons'],
+          ['J', 'Flap']
+        ],
+        MOUSE: [
+          ['Left Click', 'Menu buttons, flap']
+        ]
+      }
+    };
+  </script>
+</head>
+<body>
+  <div id="mintcrate-target"></div>
+  <script type="module" src="main.js"></script>
+  <script src="../layout.js"></script>
+</body>
