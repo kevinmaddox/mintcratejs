@@ -133,6 +133,7 @@ export class EntityFactory {
       font.charHeight,
       options.maxCharsPerLine ?? 9999,
       options.lineSpacing ?? 0,
+      options.letterSpacing ?? 0,
       options.wordWrap ?? false,
       options.alignment ?? "left",
       options.hyphenate ?? false

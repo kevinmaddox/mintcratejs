@@ -3,16 +3,14 @@
 [x] Better visual branding
   [x] MintCrate logo/graphic
   [x] Boot sequence visuals
-[/] New Entity class: Shape (line, rectangle, circle)
-  [x] Main implementation
-  - Do we want debug overlays for shapes?
-[ ] Fix game-inactive overlay to ensure text is readable and wraps
-[ ] Sprite gallery example
-[ ] Font tinting
-[ ] Entity blend modes
+[x] New Entity class: Shape (line, rectangle, circle)
+[x] Fix game-inactive overlay to ensure text is readable and wraps
+[x] Entity blend modes
+[x] Sprite gallery example
 [ ] Cross-browser testing
 [/] Look through code and take care of TODOs
 [ ] Move examples into their own GitHub project
+[ ] Quick start guide
 
 - Long-term --------------------------------------------------------------------
 [ ] Error-handler screen

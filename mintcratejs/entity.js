@@ -27,6 +27,8 @@ export class Entity {
   #x;
   #y;
   
+  #blendMode;
+  
   //----------------------------------------------------------------------------
   // Constructor
   //----------------------------------------------------------------------------
@@ -44,6 +46,8 @@ export class Entity {
     
     this.#x = x;
     this.#y = y;
+    
+    this.#blendMode = "source-over";
   }
   
   // ---------------------------------------------------------------------------
@@ -157,7 +161,7 @@ export class Entity {
   }
   
   // ---------------------------------------------------------------------------
-  // Methods for managing visibility
+  // Methods for managing appearance
   // ---------------------------------------------------------------------------
   
   isVisible() {
@@ -196,5 +200,17 @@ export class Entity {
     if (this.#wasDestroyed) { return; }
     
     this.#opacity = MintMath.clamp(this.#opacity + opacity, 0, 1);
+  }
+  
+  resetBlendMode(blendMode) {
+    this.#blendMode = "source-over";
+  }
+  
+  setBlendMode(blendMode) {
+    this.#blendMode = blendMode;
+  }
+  
+  getBlendMode() {
+    return this.#blendMode;
   }
 }

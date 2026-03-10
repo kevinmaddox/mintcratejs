@@ -1,5 +1,7 @@
 'use strict';
 
+import { Button } from "../objects/button.js";
+
 export class Gallery {
   load(engine) {
     this.mint = engine;
@@ -10,10 +12,11 @@ export class Gallery {
     mint.configureRoomFadeIn(15, 15, {r: 0, g: 0, b: 0});
     
     this.bg = mint.bg.addBackdrop('clouds', 0, 0);
-    // TODO: Add entity blend modes
-    mint.bg.addBackdrop('checkerboard-top', 0, 0, {width: mint.getBaseWidth()});
+    let cbTop = mint.bg.addBackdrop('checkerboard-top', 0, 0, {width: mint.getBaseWidth()});
     let cbBot = mint.bg.addBackdrop('checkerboard-bot', 0, 0, {width: mint.getBaseWidth()});
     cbBot.setY(mint.getBaseHeight() - cbBot.getImageHeight());
+    cbTop.setBlendMode("multiply");
+    cbBot.setBlendMode("multiply");
     
     this.currentSpriteIndex = 0;
     this.spriteNames = [
@@ -42,35 +45,18 @@ export class Gallery {
     
     this.sprite = mint.fg.addActive('sprite', mint.getBaseWidth() / 2, mint.getBaseHeight() / 2);
     
-    this.info = mint.fg.addParagraph('retro', 4, 4, this.spriteNames[0]);
-    // mint.bg.addParagraph('retro', 5, 5, "blah"); // TODO: Add font tinting
+    this.infoF = mint.fg.addParagraph('retro-white', 4, 4, this.spriteNames[0]);
+    this.infoB = mint.bg.addParagraph('retro-black', 5, 5, this.spriteNames[0]);
     
     let btnNames = [
-      'background',
+      'bg',
       'rotate',
-      'moveHorz',
-      'moveVert',
+      'movehorz',
+      'movevert',
       'magnify',
-      'arrowLeft',
-      'arrowRight',
+      'arrowleft',
+      'arrowright',
     ];
-    
-    this.btns = {};
-    
-    for (let i = 0; i < btnNames.length; i++) {
-      let btn = mint.fg.addActive('btn', 0, 0);
-      btn.setX(mint.getBaseWidth() / 2 + ((i-3) * 24) - 8);
-      btn.setY(mint.getBaseHeight() - btn.getSpriteHeight() * 2);
-      this.btns[btnNames[i]] = btn;
-    }
-    
-    this.btns.background.playAnimation('bg');
-    this.btns.rotate.playAnimation('rotate');
-    this.btns.moveHorz.playAnimation('movehorz');
-    this.btns.moveVert.playAnimation('movevert');
-    this.btns.magnify.playAnimation('magnify');
-    this.btns.arrowLeft.playAnimation('arrowleft');
-    this.btns.arrowRight.playAnimation('arrowright');
     
     this.isRotating = false;
     this.angle = 0;
@@ -82,66 +68,83 @@ export class Gallery {
     this.vertVal = 0;
     
     this.isMagnified = false;
+    
+    this.isOverButton = false;
+    
+    this.btns = {};
+    
+    for (let i = 0; i < btnNames.length; i++) {
+      this.btns[btnNames[i]] = new Button(
+        this.mint,
+        mint.getBaseWidth() / 2 + ((i-3) * 24) - 8,
+        mint.getBaseHeight() - 16 * 2,
+        btnNames[i]
+      );
+    }
+    
+    this.btns.bg.setClickCallback(() => {
+      this.bg.setVisibility(!this.bg.isVisible());
+    });
+    
+    this.btns.rotate.setClickCallback(() => {
+      this.isRotating = !this.isRotating;
+    });
+    
+    this.btns.movehorz.setClickCallback(() => {
+      this.isMovingHorz = !this.isMovingHorz;
+    });
+    
+    this.btns.movevert.setClickCallback(() => {
+      this.isMovingVert = !this.isMovingVert;
+    });
+    
+    this.btns.magnify.setClickCallback(() => {
+      this.isMagnified = !this.isMagnified;
+    });
+    
+    this.btns.arrowleft.setClickCallback(() => {
+      this.currentSpriteIndex++;
+      if (this.currentSpriteIndex >= this.spriteNames.length) {
+        this.currentSpriteIndex = 0;
+      }
+      
+      let spriteName = this.spriteNames[this.currentSpriteIndex];
+      this.sprite.playAnimation(spriteName);
+      this.infoF.setTextContent(spriteName);
+      this.infoB.setTextContent(spriteName);
+    });
+    
+    this.btns.arrowright.setClickCallback(() => {
+      this.currentSpriteIndex--;
+      if (this.currentSpriteIndex < 0) {
+        this.currentSpriteIndex = this.spriteNames.length - 1;
+      }
+      
+      let spriteName = this.spriteNames[this.currentSpriteIndex];
+      this.sprite.playAnimation(spriteName);
+      this.infoF.setTextContent(spriteName);
+      this.infoB.setTextContent(spriteName);
+    });
   }
   
   update() {
     let mint = this.mint;
     
-    // Handle button clicking
-    if (mint.mousePressed(0)) {
-      // Toggle background
-      if (mint.mouseOverActive(this.btns.background)) {
-        this.bg.setVisibility(!this.bg.isVisible());
-        
-      // Rotate sprite
-      } else if (mint.mouseOverActive(this.btns.rotate)) {
-        this.isRotating = !this.isRotating;
-      
-      // Move sprite horizontally
-      } else if (mint.mouseOverActive(this.btns.moveHorz)) {
-        this.isMovingHorz = !this.isMovingHorz;
-      
-      // Move sprite vertically
-      } else if (mint.mouseOverActive(this.btns.moveVert)) {
-        this.isMovingVert = !this.isMovingVert;
-      
-      // Magnify sprite
-      } else if (mint.mouseOverActive(this.btns.magnify)) {
-        this.isMagnified = !this.isMagnified;
-        
-      // Previous sprite
-      } else if (mint.mouseOverActive(this.btns.arrowRight)) {
-        this.currentSpriteIndex++;
-        if (this.currentSpriteIndex >= this.spriteNames.length) {
-          this.currentSpriteIndex = 0;
-        }
-        
-        let spriteName = this.spriteNames[this.currentSpriteIndex];
-        this.sprite.playAnimation(spriteName);
-        this.info.setTextContent(spriteName);
-      
-      // Next sprite
-      } else if (mint.mouseOverActive(this.btns.arrowLeft)) {
-        this.currentSpriteIndex--;
-        if (this.currentSpriteIndex < 0) {
-          this.currentSpriteIndex = this.spriteNames.length - 1;
-        }
-        
-        let spriteName = this.spriteNames[this.currentSpriteIndex];
-        this.sprite.playAnimation(spriteName);
-        this.info.setTextContent(spriteName);
-      }
+    for (const btnName in this.btns) {
+      let btn = this.btns[btnName];
+      btn.update();
     }
     
+    // Sprite rotation
     if (this.isRotating) {
       this.angle++;
-      console.log(this.angle);
       this.sprite.rotate(1);
     } else {
       this.angle = 0;
       this.sprite.setAngle(0);
     }
     
+    // Sprite horizontal movement
     if (this.isMovingHorz) {
       this.horzVal += 0.025;
       this.sprite.setX(mint.getBaseWidth() / 2 + Math.sin(this.horzVal) * 150);
@@ -150,6 +153,7 @@ export class Gallery {
       this.sprite.setX(mint.getBaseWidth() / 2);
     }
     
+    // Sprite vertical movement
     if (this.isMovingVert) {
       this.vertVal += 0.055;
       this.sprite.setY(mint.getBaseHeight() / 2 + Math.sin(this.vertVal) * 75);
@@ -158,7 +162,7 @@ export class Gallery {
       this.sprite.setY(mint.getBaseHeight() / 2);
     }
     
-    
+    // Sprite scale
     this.sprite.setScaleX((this.isMagnified ? 2 : 1));
     this.sprite.setScaleY((this.isMagnified ? 2 : 1));
   }

@@ -2430,11 +2430,6 @@ export class MintCrate {
     // Draw foreground layer entities
     this.#drawEntities('foreground');
     
-    // Reset alpha rendering value
-    this.#backContext.globalAlpha = 1.0;
-    
-    // Draw Text
-    
     // Draw fade in/out effect
     if (this.#fadeLevel < 100) {
       // Set color of fade
@@ -2709,16 +2704,12 @@ export class MintCrate {
     if (!this.#gameHasFocus() && !this.#devMode) {
       this.#backContext.fillStyle = 'rgb(0 0 0 / 50%)';
       this.#backContext.fillRect(0, 0, this.#BASE_WIDTH, this.#BASE_HEIGHT);
-      let font = this.#data.fonts['system_dialog'];
+      let font = this.#data.fonts['system_bold_outline'];
       this.#drawText(
-        [
-          'MINTCRATE',
-          'Paused',
-          'Please click the screen to resume playing'
-        ],
+        ['Paused'],
         font,
         (this.#BASE_WIDTH  / 2),
-        (this.#BASE_HEIGHT / 2) - (font.charHeight * 2),
+        (this.#BASE_HEIGHT / 2) - (font.charHeight / 2),
         font.charHeight,
         'center'
       );
@@ -2739,6 +2730,9 @@ export class MintCrate {
       
       // Set alpha rendering value
       this.#backContext.globalAlpha = entity.getOpacity();
+      
+      // Set blending mode
+      this.#backContext.globalCompositeOperation = entity.getBlendMode();
       
       // Draw actives
       if (entityType === "active") {
@@ -2977,7 +2971,6 @@ export class MintCrate {
           this.#backContext.strokeStyle = MintUtil.rgbToString(color.r, color.g, color.b);
           this.#backContext.lineWidth = entity.getLineWidth();
           this.#backContext.lineCap = "round";
-          this.#backContext.globalAlpha = entity.getOpacity();
           
           // Draw line
           this.#backContext.beginPath();
@@ -3002,7 +2995,6 @@ export class MintCrate {
           this.#backContext.fillStyle = MintUtil.rgbToString(color.r, color.g, color.b);
           this.#backContext.strokeStyle = MintUtil.rgbToString(borderColor.r, borderColor.g, borderColor.b);
           this.#backContext.lineWidth = entity.getBorderWidth();
-          this.#backContext.globalAlpha = entity.getOpacity();
           
           // Draw rectangle
           this.#backContext.fillRect(
@@ -3029,7 +3021,6 @@ export class MintCrate {
           this.#backContext.fillStyle = MintUtil.rgbToString(color.r, color.g, color.b);
           this.#backContext.strokeStyle = MintUtil.rgbToString(borderColor.r, borderColor.g, borderColor.b);
           this.#backContext.lineWidth = entity.getBorderWidth();
-          this.#backContext.globalAlpha = entity.getOpacity();
           
           // Draw circle
           this.#backContext.beginPath();
@@ -3051,9 +3042,14 @@ export class MintCrate {
         // Reset geometric drawing properties
         this.#backContext.lineCap = "butt";
         this.#backContext.lineWidth = 1;
-        this.#backContext.globalAlpha = 1.0;
       }
     }
+    
+    // Reset alpha rendering value
+    this.#backContext.globalAlpha = 1.0;
+    
+    // Reset blending mode
+    this.#backContext.globalCompositeOperation = "source-over";
   }
   
   #drawNinepatchPattern(pattern, x, y, width, height) {
@@ -3076,7 +3072,8 @@ export class MintCrate {
     x,
     y,
     lineSpacing = 0,
-    alignment = "left"
+    alignment = "left",
+    letterSpacing = 0
   ) {
     // Draw lines of text, character-by-character
     for (let lineNum = 0; lineNum < textLines.length; lineNum++) {
@@ -3115,7 +3112,7 @@ export class MintCrate {
           charTile.row * font.charHeight,                            // sy
           font.charWidth,                                            // sWidth
           font.charHeight,                                           // sHeight
-          x + (font.charWidth * charNum) - xOffset,                  // dx
+          x + (font.charWidth * charNum) - xOffset + (letterSpacing * charNum),             // dx
           y + (font.charHeight * lineNum) + (lineSpacing * lineNum), // dy
           font.charWidth,                                            // dWidth
           font.charHeight                                            // dHeight

@@ -17,6 +17,7 @@ export class Paragraph extends Entity {
   #glyphHeight;
   #maxCharsPerLine;
   #lineSpacing;
+  #letterSpacing
   #wordWrap;
   #alignment;
   #hyphenate;
@@ -37,6 +38,7 @@ export class Paragraph extends Entity {
     glyphHeight,
     maxCharsPerLine,
     lineSpacing,
+    letterSpacing,
     wordWrap,
     alignment,
     hyphenate
@@ -47,6 +49,7 @@ export class Paragraph extends Entity {
     this.#glyphHeight = glyphHeight;
     this.#maxCharsPerLine = maxCharsPerLine;
     this.#lineSpacing = lineSpacing;
+    this.#letterSpacing = letterSpacing;
     this.#wordWrap = wordWrap;
     this.#alignment = alignment;
     this.#textContent = "";
@@ -215,7 +218,11 @@ export class Paragraph extends Entity {
   }
   
   getLineSpacing() {
-    return this.#lineSpacing
+    return this.#lineSpacing;
+  }
+  
+  getLetterSpacing() {
+    return this.#letterSpacing;
   }
   
   getWordWrap() {

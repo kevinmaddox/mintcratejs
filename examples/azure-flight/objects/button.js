@@ -62,7 +62,7 @@ export class Button {
       || mint.inputs[0].released(this.keyboardKey)
     ) {
       if (this.toggleable) {
-          this.enabled = !this.enabled;
+        this.enabled = !this.enabled;
       } else {
         this.wasClicked = true;
       }

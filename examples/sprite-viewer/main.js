@@ -88,11 +88,14 @@ mint.defineBackdrops([
 ]);
 
 mint.defineFonts([
-  {name: 'retro'},
+  {name: 'retro-black'},
+  {name: 'retro-white'}
 ]);
 
 // mint.defineSounds([
-  // {name: 'button-down'},
+  // {name: 'tickb'},
+  // {name: 'down'},
+  // {name: 'up'}
 // ]);
 
 
