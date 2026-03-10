@@ -82,6 +82,14 @@ export class Gallery {
       );
     }
     
+    this.btns.bg.setKeyboardKey('space');
+    this.btns.rotate.setKeyboardKey('j');
+    this.btns.movehorz.setKeyboardKey('k');
+    this.btns.movevert.setKeyboardKey('l');
+    this.btns.magnify.setKeyboardKey(';');
+    this.btns.arrowleft.setKeyboardKey('a');
+    this.btns.arrowright.setKeyboardKey('d');
+    
     this.btns.bg.setClickCallback(() => {
       this.bg.setVisibility(!this.bg.isVisible());
     });

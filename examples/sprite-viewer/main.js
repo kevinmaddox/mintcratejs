@@ -29,10 +29,13 @@ mint.defineColorKeys([
 
 mint.addInputHandler();
 
-mint.inputs[0].mapInput('w', 'KeyW');
-mint.inputs[0].mapInput('s', 'KeyS');
-mint.inputs[0].mapInput('a', 'KeyA');
-mint.inputs[0].mapInput('d', 'KeyD');
+mint.inputs[0].mapInput('a',     'KeyA');
+mint.inputs[0].mapInput('d',     'KeyD');
+mint.inputs[0].mapInput('j',     'KeyJ');
+mint.inputs[0].mapInput('k',     'KeyK');
+mint.inputs[0].mapInput('l',     'KeyL');
+mint.inputs[0].mapInput(';',     'Semicolon');
+mint.inputs[0].mapInput('space', 'Space');
 
 mint.inputs[0].mapInput('1', 'Digit1');
 

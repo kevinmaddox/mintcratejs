@@ -18,8 +18,11 @@ export class Button {
     this.active.setY(y);
     this.active.playAnimation(animationName);
     
-    this.wasClicked = false;
     this.isHovering = false;
+  }
+  
+  setKeyboardKey(inputCode) {
+    this.keyboardKey = inputCode;
   }
   
   setClickCallback(func) {
@@ -30,26 +33,27 @@ export class Button {
     let mint = this.#mint;
     
     let mouseOverBtn = mint.mouseOverActive(this.active);
+    let clicked = (
+      (mint.mouseReleased(0) && mouseOverBtn)
+      || (this.keyboardKey && mint.inputs[0].pressed(this.keyboardKey))
+    );
     
     // Handle button clicking
-    if (
-      mint.mouseReleased(0) && mouseOverBtn
-      // || mint.inputs[0].released(this.keyboardKey)
-    ) {
-      this.wasClicked = true;
-      
+    if (clicked) {
       // mint.playSound('up');
       this.#clickedCallback();
     }
     
+    /*
     if (!mint.mouseHeld(0) && mouseOverBtn) {
       if (!this.isHovering) {
         this.isHovering = true;
-        // mint.playSound('tickb');
+        mint.playSound('tickb');
       }
     } else {
       this.isHovering = false;
     }
+    */
     
     if (
       !mint.mouseHeld(0) && mouseOverBtn
@@ -73,8 +77,6 @@ export class Button {
       this.active.setOpacity(1.0);
       this.active.resetBlendMode();
     }
-    
-    
   }
   
 }
