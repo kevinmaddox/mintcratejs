@@ -9,7 +9,6 @@
 [x] Sprite gallery example
 [ ] Cross-browser testing
 [/] Look through code and take care of TODOs
-[ ] Move examples into their own GitHub project
 [ ] Quick start guide
 
 - Long-term --------------------------------------------------------------------

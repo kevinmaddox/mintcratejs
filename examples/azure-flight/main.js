@@ -3,8 +3,11 @@
 'use strict';
 
 // MintCrate
-import { MintCrate } from "../../mintcratejs/core.js";
-// import { MintCrate } from "https://cdn.jsdelivr.net/gh/kevinmaddox/mintcratejs@master/mintcratejs/core.js";
+let mcPath = (window.location.hostname === 'localhost')
+  ? window.mintCratePaths.local
+  : window.mintCratePaths.remote;
+
+const { MintCrate } = await import(mcPath);
 
 // Levels
 import { Splash } from "./rooms/splash.js";
