@@ -18,6 +18,10 @@ View and play with some pixel art graphics.
 
 ![sprite gallery screenshot](https://raw.githubusercontent.com/kevinmaddox/mintcratejs/refs/heads/main/readme-content/sprite-gallery.png)
 
+## Quickstart Guide
+
+TODO: This
+
 ## Licensing for Example Projects
 
 ### Open-source Content
