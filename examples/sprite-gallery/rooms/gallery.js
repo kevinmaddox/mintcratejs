@@ -110,28 +110,28 @@ export class Gallery {
       this.isMagnified = !this.isMagnified;
     });
     
-    this.btns.arrowleft.setClickCallback(() => {
-      this.currentSpriteIndex++;
-      if (this.currentSpriteIndex >= this.spriteNames.length) {
-        this.currentSpriteIndex = 0;
-      }
-      
-      let spriteName = this.spriteNames[this.currentSpriteIndex];
+    const updateVisuals = (spriteName) => {
       this.sprite.playAnimation(spriteName);
       this.infoF.setTextContent(spriteName);
       this.infoB.setTextContent(spriteName);
-    });
+    }
     
-    this.btns.arrowright.setClickCallback(() => {
+    this.btns.arrowleft.setClickCallback(() => {
       this.currentSpriteIndex--;
       if (this.currentSpriteIndex < 0) {
         this.currentSpriteIndex = this.spriteNames.length - 1;
       }
       
-      let spriteName = this.spriteNames[this.currentSpriteIndex];
-      this.sprite.playAnimation(spriteName);
-      this.infoF.setTextContent(spriteName);
-      this.infoB.setTextContent(spriteName);
+      updateVisuals(this.spriteNames[this.currentSpriteIndex]);
+    });
+    
+    this.btns.arrowright.setClickCallback(() => {
+      this.currentSpriteIndex++;
+      if (this.currentSpriteIndex >= this.spriteNames.length) {
+        this.currentSpriteIndex = 0;
+      }
+      
+      updateVisuals(this.spriteNames[this.currentSpriteIndex]);
     });
   }
   

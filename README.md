@@ -6,17 +6,19 @@ Rapid game development framework for developing prototypes and simple games. Fav
 
 ## Examples
 
+Warning: These examples may feature audio.
+
 ### [Azure Flight](https://kevinmaddox.github.io/mintcratejs/examples/azure-flight/)
 
 Arcade action game. Fly up and down and avoid the rocks!
 
-![azure flight screenshot](https://raw.githubusercontent.com/kevinmaddox/mintcratejs/refs/heads/main/readme-content/azure-flight.png)
+[<img src="https://raw.githubusercontent.com/kevinmaddox/mintcratejs/refs/heads/main/readme-content/azure-flight.png" alt="azure flight screenshot">](https://kevinmaddox.github.io/mintcratejs/examples/azure-flight/)
 
 ### [Sprite Gallery](https://kevinmaddox.github.io/mintcratejs/examples/sprite-gallery/)
 
 View and play with some pixel art graphics.
 
-![sprite gallery screenshot](https://raw.githubusercontent.com/kevinmaddox/mintcratejs/refs/heads/main/readme-content/sprite-gallery.png)
+[<img src="https://raw.githubusercontent.com/kevinmaddox/mintcratejs/refs/heads/main/readme-content/sprite-gallery.png" alt="azure flight screenshot">](https://kevinmaddox.github.io/mintcratejs/examples/sprite-gallery/)
 
 ## Quickstart Guide
 

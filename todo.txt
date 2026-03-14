@@ -9,6 +9,7 @@
 [x] Sprite gallery example
 [ ] Cross-browser testing
 [/] Look through code and take care of TODOs
+[ ] Add placeholder graphics for before MintCrate loads (on remote)
 [ ] Quick start guide
 
 - Long-term --------------------------------------------------------------------
