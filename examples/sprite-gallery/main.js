@@ -20,7 +20,7 @@ let roomList = [
 
 var mint = new MintCrate("mintcrate-target", 480, 360, roomList, {
   screenScale: 1,
-  devMode: true
+  // devMode: true
 });
 
 window.mint = mint;
