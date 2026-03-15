@@ -22,7 +22,101 @@ View and play with some pixel art graphics.
 
 ## Quickstart Guide
 
-TODO: This
+### Overview
+
+Blah blah
+
+### Project Structure
+
+Main JS file, rooms, folder structure
+
+Resources and entities are defined in your main JavaScript file.
+
+```
+// Actives
+mintCrate.defineActives([
+  // Knight (player character)
+  {name: 'knight'},
+  {name: 'knight_collider', width: 32, height: 48, offset: [-16, -48]},
+  {name: 'knight_idle', offset: [-16, -48], actionPoints: [[32, 24]]},
+  {name: 'knight_walk', offset: [-16, -48], actionPoints: [[32, 24], [32, 23], [32, 24], [32, 23]], frameCount: 4, frameDuration: 20},
+  
+  // Coin
+  {name: 'coin'},
+  {name: 'coin_collider', width: 16, height: 16, offset: [-8, -8]},
+  {name: 'coin_default', offset: [-8, -8]},
+]);
+
+// Backdrops
+mintCrate.defineBackdrops([
+  {name: 'tree'},
+  {name: 'cloudysky', mosaic: true},
+  {name: 'menubox', ninePatch: false}
+]);
+
+// Fonts
+mint.defineFonts([
+  {name: 'pixel'}
+]);
+
+// Tilemaps
+mint.defineTilemaps([
+  {name: 'grassland', tileWidth: 16, tileHeight: 16},
+  {name: 'grassland_field'},
+  {name: 'grassland_woods'}
+]);
+
+// Sound effects
+mint.defineSounds([
+  {name: 'footstep'},
+  {name: 'swish'},
+  {name: 'getcoin'}
+]);
+
+// Background music tracks
+mint.defineMusic([
+  {name: 'field', loop: true},
+  {name: 'battle', loop: true, loopStart: 0.247, loopEnd: 83.649},
+  {name: 'victory'}
+]);
+```
+
+### Entities
+
+Like many game-development frameworks, MintCrate has a concept of entities. There are 4 types.
+
+1. Actives: Animated sprite entities that support collisions. Used for players, enemies, bullets, etc.
+2. Backdrops: Non-animated sprite entities that support tiling and ninepatching. Used for scenery, UIs, etc.
+3. Paragraphs: Monospaced bitmap font entities that support simple formatting. Used for variable text strings, of course.
+4. Shapes: Abstract geometric shapes (lines, rectangles, and circles). Used for any supporting graphical means.
+
+Entities have functions, which vary depending on the entity type. For example:
+
+```
+// Actives
+knight.playAnimation('walk');
+knight.getTransformedSpriteWidth();
+knight.getLeftEdgeX();
+knight.getActionPointX();
+
+// Backdrops
+checkerboard.setWidth(64);
+checkerboard.setU(32);
+checkerboard.setV(32);
+
+// Paragraphs
+menuText.setTextContent('Press start to play!');
+menuText.getGlyphWidth();
+
+// Shapes
+myCircle.setBorderWidth(2);
+myCircle.setRadius(16);
+myCircle.getRadius();
+```
+
+### Input
+
+### Audio
 
 ## Licensing for Example Projects
 
