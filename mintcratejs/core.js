@@ -21,6 +21,8 @@ export class MintCrate {
   // Member variables
   //----------------------------------------------------------------------------
   
+  static version = "1.00";
+  
   #pageHasFocus;
   
   #frontCanvas;
@@ -427,7 +429,7 @@ export class MintCrate {
     this.#drawText(
       [
         "POWERED BY",
-        "MINTCRATE VER 1.02A"
+        "MINTCRATE VER " + MintCrate.version
       ],
       font,
       (this.#BASE_WIDTH  / 2),
