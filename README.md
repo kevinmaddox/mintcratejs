@@ -265,6 +265,14 @@ this.waterLine = mint.bg.addRectangle(0, 128, 320, 64);
 this.radarBg = mint.bg.addCircle(64, 8, 32);
 ```
 
+Notice the `.fg` and `.bg` specifiers when adding entities. This is because MintCrate rooms have 3 rendering layers:
+
+- Background layer (`.bg`)
+- Tilemap layer (cannot be added to, reserved only for tilemap)
+- Foreground layer (`.fg`)
+
+How you use these layers is entirely up to you.
+
 The `update` function is where all of the room's game logic takes place. The actual "game stuff" happens in here.
 ```
 if (mint.inputs[0].pressed('right')) {
