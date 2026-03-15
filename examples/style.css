@@ -68,6 +68,13 @@ td:first-child {
 
 /* Main Elements ------------------------------------------------------------ */
 
+.loading-placeholder {
+  background-color: black;
+  background-image: url('loading.png');
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
 .wrapper {
   width: max-content;
   min-width: 480px;

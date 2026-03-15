@@ -149,6 +149,8 @@ export class MintCrate {
     
     let targetContainer = document.querySelector(`#${divTargetId}`);
     targetContainer.style.display = "inline-flex";
+    targetContainer.querySelectorAll('*').forEach((el) => el.remove());
+    targetContainer.textContent = "";
     targetContainer.append(this.#frontCanvas);
     
     // Paths for loading media resources

@@ -24,6 +24,10 @@ scaleBtnPlus.dataset.val = '1';
 
 [scaleBtnMinus, scaleBtnPlus].forEach((btn) => {
   btn.addEventListener('click', (e) => {
+    if (!window.mint) {
+      return;
+    }
+    
     let val = Number(e.target.dataset.val);
     let newScale = window.mint.getScreenScale() + val;
     newScale = Math.max(newScale, 1);
