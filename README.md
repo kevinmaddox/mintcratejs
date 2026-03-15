@@ -296,7 +296,7 @@ Tilemap images are 1-indexed. The indexing occurs left-to-right, top-to-bottom. 
 
 A tilemap PNG file may look as follows:
 
-![tilemap sample image](https://raw.githubusercontent.com/kevinmaddox/mintcratejs/refs/heads/main/readme-content/tilemap-sample.png.png)
+![tilemap sample image](https://raw.githubusercontent.com/kevinmaddox/mintcratejs/refs/heads/main/readme-content/tilemap-sample.png)
 
 A tilemap JSON file may look as follows:
 
