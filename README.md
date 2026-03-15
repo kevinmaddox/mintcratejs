@@ -22,6 +22,23 @@ View and play with some pixel art graphics.
 
 # Quickstart Guide
 
+## Overview
+
+MintCrate was developed to be fast and fun. Simplicity was a main goal in its development and, in multiple cases, control is sacrified for the sake of simplicity. Should you ever find yourself thinking, "I should be able to do {x} with MintCrate!," then it's most likely not the framework for your needs.
+
+What it's good for:
+
+- Simple, hobby games and projects
+- Rapid prototyping
+- Having fun
+
+What it's not good for:
+
+- Robust, professional-quality games.
+- Games in which graphical performance is a bottleneck (rendering is done via HTML canvas, as opposed to WebGL).
+
+Please see the example project code and project structures for more detailed views of what a MintCrate-developed game looks like.
+
 ## Project Structure
 
 MintCrate has a few core concepts:
