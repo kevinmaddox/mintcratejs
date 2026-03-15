@@ -4,25 +4,25 @@
 
 Rapid game-development framework for developing prototypes and simple games. Favors fun and ease of use.
 
-## Examples
+# Examples
 
 Warning: These examples may feature audio.
 
-### [Azure Flight](https://kevinmaddox.github.io/mintcratejs/examples/azure-flight/)
+## [Azure Flight](https://kevinmaddox.github.io/mintcratejs/examples/azure-flight/)
 
 Arcade action game. Fly up and down and avoid the rocks!
 
 [<img src="https://raw.githubusercontent.com/kevinmaddox/mintcratejs/refs/heads/main/readme-content/azure-flight.png" alt="azure flight screenshot">](https://kevinmaddox.github.io/mintcratejs/examples/azure-flight/)
 
-### [Sprite Gallery](https://kevinmaddox.github.io/mintcratejs/examples/sprite-gallery/)
+## [Sprite Gallery](https://kevinmaddox.github.io/mintcratejs/examples/sprite-gallery/)
 
 View and play with some pixel art graphics.
 
 [<img src="https://raw.githubusercontent.com/kevinmaddox/mintcratejs/refs/heads/main/readme-content/sprite-gallery.png" alt="azure flight screenshot">](https://kevinmaddox.github.io/mintcratejs/examples/sprite-gallery/)
 
-## Quickstart Guide
+# Quickstart Guide
 
-### Project Structure
+## Project Structure
 
 MintCrate has a few core concepts:
 
@@ -81,7 +81,7 @@ An example project may look like the following:
 
 All files are either `js`, `png`, `ogg`, or `json`. Keep this in mind.
 
-### Initializing MintCrate
+## Initializing MintCrate
 
 You will want to include a `<div>` on the page you're loading your MintCrate-powered game on:
 
@@ -95,7 +95,7 @@ Under the `<div>`, load your `main.js` file:
 
 Ensure that it's `type` is specified as `module`.
 
-### main.js
+## main.js
 
 This is the entrypoint for your game. Begin by importing MintCrate:
 
@@ -195,7 +195,7 @@ And finally, tell MintCrate to begin the boot-up sequence:
 mint.ready();
 ```
 
-### Rooms
+## Rooms
 
 The basic setup for a room script is as such:
 
@@ -277,7 +277,7 @@ if (mint.testActiveCollision(this.player, this.coin)) {
 }
 ```
 
-### Tilemaps
+## Tilemaps
 
 Tilemaps are made up of 2 files:
 
@@ -332,7 +332,7 @@ A tilemap JSON file may look as follows:
 
 The behavior map is used to handle collisions with different types of tiles. For example, touching a regular grass block is going to be different than touching a lava block. These behavior values are later used in the `testActiveCollision` function (see section "Entities" below).
 
-### Entities
+## Entities
 
 Like many game-development frameworks, MintCrate has a concept of entities. There are 4 types:
 
@@ -380,7 +380,7 @@ mint.testMapCollision(this.player, 4);
 
 The `4` indicates the tilemap behavior. For example, `4` may be a lava tile, in which you'd want to make the player take damage should the check succeed.
 
-### Input
+## Input
 
 Checking inputs is done via input handlers, which are defined in the `main.js` initialization sequence. Ensure that a handler is added before checking its input. A few notes:
 
@@ -402,7 +402,7 @@ mint.mouseReleased(0);
 mint.mouseHeld(0);
 ```
 
-### Audio
+## Audio
 
 Music can be played simply (only one track can be played at a time), and a few functions are available for manipulating its playback:
 
@@ -424,9 +424,9 @@ mint.setMusicVolume(0.75);
 mint.setSoundVolume(0.4);
 ```
 
-## Licensing for Example Projects
+# Licensing for Example Projects
 
-### Open-source Content
+## Open-source Content
 
 All code and assets, including system image resources (the crosshairs and bitmap
 font files), that make up the MintCrate library are licensed under the MIT
@@ -437,7 +437,7 @@ falls under the MIT License.
 The program code (JS & JSON files) provided within the example files within this
 folder also fall under the MIT License.
 
-### Copyrighted Media
+## Copyrighted Media
 
 The media assets within the provided example projects, however, are copyrighted
 material and do not fall under the MIT License. This includes (but is not
