@@ -176,6 +176,7 @@ export class MintCrate {
     this.#colorKeys = [];
     this.#imageManipCanvas = document.createElement('canvas');
     this.#imageManipContext = this.#imageManipCanvas.getContext('2d');
+    this.#imageManipContext.imageSmoothingEnabled = false;
     
     // System graphics for debugging purposes
     this.#systemImages = {};
@@ -409,8 +410,8 @@ export class MintCrate {
       0,                                              // sy
       graphic.width / 2,                              // sWidth
       graphic.height,                                 // sHeight
-      (this.#BASE_WIDTH  / 2) - (graphic.width  / 4), // dx
-      (this.#BASE_HEIGHT / 2) - (graphic.height / 4), // dy
+      Math.floor((this.#BASE_WIDTH  / 2) - (graphic.width  / 4)), // dx
+      Math.floor((this.#BASE_HEIGHT / 2) - (graphic.height / 4)), // dy
       graphic.width / 2,                              // dWidth,
       graphic.height                                  // dHeight
     );
@@ -452,8 +453,8 @@ export class MintCrate {
     
     this.#backContext.drawImage(
       graphic,                                        // image
-      (this.#BASE_WIDTH  / 2) - (graphic.width  / 2), // dx
-      (this.#BASE_HEIGHT / 2) - (graphic.height / 2)  // dy
+      Math.floor((this.#BASE_WIDTH  / 2) - (graphic.width  / 2)), // dx
+      Math.floor((this.#BASE_HEIGHT / 2) - (graphic.height / 2))  // dy
     );
     
     this.#drawText(
@@ -2421,8 +2422,8 @@ export class MintCrate {
               clippingRect.y,
               tilemap.tileWidth,
               tilemap.tileHeight,
-              (col * tilemap.tileWidth)  - this.#camera.x,
-              (row * tilemap.tileHeight) - this.#camera.y,
+              Math.floor((col * tilemap.tileWidth)  - this.#camera.x),
+              Math.floor((row * tilemap.tileHeight) - this.#camera.y),
               tilemap.tileWidth,
               tilemap.tileHeight
             );
@@ -2583,8 +2584,8 @@ export class MintCrate {
           // Draw action point
           this.#backContext.drawImage(
             img,
-            active.getActionPointX() - Math.floor(img.width/2) - this.#camera.x,
-            active.getActionPointY() - Math.floor(img.height/2) - this.#camera.y
+            Math.floor(active.getActionPointX() - Math.floor(img.width/2) - this.#camera.x),
+            Math.floor(active.getActionPointY() - Math.floor(img.height/2) - this.#camera.y)
           );
         }
         
@@ -2593,8 +2594,8 @@ export class MintCrate {
           let img = this.#systemImages['point_origin'];
           this.#backContext.drawImage(
             img,
-            active.getX() - Math.floor(img.width/2) - this.#camera.x,
-            active.getY() - Math.floor(img.height/2) - this.#camera.y
+            Math.floor(active.getX() - Math.floor(img.width/2) - this.#camera.x),
+            Math.floor(active.getY() - Math.floor(img.height/2) - this.#camera.y)
           );
         }
         
@@ -2794,8 +2795,8 @@ export class MintCrate {
           animation.frameWidth,
           animation.frameHeight,
           // Destination X/Y
-          entity.getX() + animation.offsetX - flipOffsetX - this.#camera.x,
-          entity.getY() + animation.offsetY - flipOffsetY - this.#camera.y,
+          Math.floor(entity.getX() + animation.offsetX - flipOffsetX - this.#camera.x),
+          Math.floor(entity.getY() + animation.offsetY - flipOffsetY - this.#camera.y),
           // Destination width/height
           animation.frameWidth,
           animation.frameHeight
@@ -2862,8 +2863,8 @@ export class MintCrate {
             corners[0].y,
             corners[0].width,
             corners[0].height,
-            x - this.#camera.x,
-            y - this.#camera.y,
+            Math.floor(x - this.#camera.x),
+            Math.floor(y - this.#camera.y),
             corners[0].width,
             corners[0].height
           );
@@ -2875,8 +2876,8 @@ export class MintCrate {
             corners[1].y,
             corners[1].width,
             corners[1].height,
-            x + width - corners[1].width - this.#camera.x,
-            y - this.#camera.y,
+            Math.floor(x + width - corners[1].width - this.#camera.x),
+            Math.floor(y - this.#camera.y),
             corners[1].width,
             corners[1].height
           );
@@ -2888,8 +2889,8 @@ export class MintCrate {
             corners[2].y,
             corners[2].width,
             corners[2].height,
-            x - this.#camera.x,
-            y + height - corners[2].height - this.#camera.y,
+            Math.floor(x - this.#camera.x),
+            Math.floor(y + height - corners[2].height - this.#camera.y),
             corners[2].width,
             corners[2].height
           );
@@ -2901,8 +2902,8 @@ export class MintCrate {
             corners[3].y,
             corners[3].width,
             corners[3].height,
-            x + width - corners[3].width - this.#camera.x,
-            y + height - corners[3].height - this.#camera.y,
+            Math.floor(x + width - corners[3].width - this.#camera.x),
+            Math.floor(y + height - corners[3].height - this.#camera.y),
             corners[3].width,
             corners[3].height
           );
@@ -3116,8 +3117,8 @@ export class MintCrate {
           charTile.row * font.charHeight,                            // sy
           font.charWidth,                                            // sWidth
           font.charHeight,                                           // sHeight
-          x + (font.charWidth * charNum) - xOffset + (letterSpacing * charNum),             // dx
-          y + (font.charHeight * lineNum) + (lineSpacing * lineNum), // dy
+          Math.floor(x + (font.charWidth * charNum) - xOffset + (letterSpacing * charNum)),             // dx
+          Math.floor(y + (font.charHeight * lineNum) + (lineSpacing * lineNum)), // dy
           font.charWidth,                                            // dWidth
           font.charHeight                                            // dHeight
         );

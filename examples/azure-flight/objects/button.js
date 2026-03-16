@@ -30,7 +30,7 @@ export class Button {
     this.textActive = mint.fg.addParagraph('ui-main', 0, 0, textContent, {alignment: 'center'});
     this.textActive.setX(x + width / 2);
     this.textActive.setY(
-      y + (height / 2) - (this.textActive.getGlyphHeight() / 2)
+      y + (height / 2) - (this.textActive.getGlyphHeight() / 2) + 1
     );
     
     this.isDown = false;

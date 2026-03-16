@@ -23,6 +23,7 @@
 [ ] Function comments/documentation
 [ ] Function validation
 [ ] Docs & tutorials
+[ ] Enable debugging for only specific entities?
 
 - Ponderings -------------------------------------------------------------------
 [ ] Change Active's getSpriteHeight to getImageHeight to make it consistent
@@ -32,6 +33,8 @@
 - Outstanding Bugs -------------------------------------------------------------
 [ ] There's still some bugginess with song pausing/resuming. It may have to do
     with looping.
+[ ] Azure Flight - Upon game over, if character gets launch far enough to the
+    right, her shadow will be misaligned.
 
 - Done -------------------------------------------------------------------------
 [x] Change "sfx" and "bgm" back to "sound" and "music"? - Yes
