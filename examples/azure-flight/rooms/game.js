@@ -262,7 +262,7 @@ export class Game {
       
       // Create water splashes when player treads water
       if (
-        (this.harpy.getY() + this.harpy.getSpriteHeight()/2) >= this.WATER_LINE_Y
+        (this.harpy.getY() + this.harpy.getImageHeight()/2) >= this.WATER_LINE_Y
         && this.harpy.treadDelay <= 0
         && !this.harpy.wasHit
       ) {
@@ -500,10 +500,10 @@ export class Game {
         
         // Set opacity and scaling values
         let entityBottomY =
-          shadow.entity.getY() + (shadow.entity.getSpriteHeight() / 2);
+          shadow.entity.getY() + (shadow.entity.getImageHeight() / 2);
         
         let maxScale =
-          shadow.entity.getSpriteWidth() / shadow.getSpriteWidth();
+          shadow.entity.getImageWidth() / shadow.getImageWidth();
         let scale = (entityBottomY / 157) * maxScale;
         
         shadow.setScaleX(scale);

@@ -315,7 +315,7 @@ export class Active extends Entity {
     this.#currentAnimation = animation;
   }
   
-  getSpriteWidth() {
+  getImageWidth() {
     // Get animation frame width
     let val = 0;
     
@@ -327,7 +327,7 @@ export class Active extends Entity {
     return val;
   }
   
-  getSpriteHeight() {
+  getImageHeight() {
     // Get animation frame height
     let val = 0;
     
@@ -339,7 +339,7 @@ export class Active extends Entity {
     return val;
   }
   
-  getTransformedSpriteWidth() {
+  getTransformedImageWidth() {
     // Calculate transformed width
     let width    = this.getImageWidth()  * this.#scaleX;
     let height   = this.getImageHeight() * this.#scaleY;
@@ -351,7 +351,7 @@ export class Active extends Entity {
     return Math.round(tWidth);
   }
   
-  getTransformedSpriteHeight() {
+  getTransformedImageHeight() {
     // Calculate transformed width
     let width    = this.getImageWidth()  * this.#scaleX;
     let height   = this.getImageHeight() * this.#scaleY;

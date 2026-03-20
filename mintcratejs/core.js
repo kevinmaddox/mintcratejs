@@ -1793,10 +1793,7 @@ export class MintCrate {
       || e.ctrlKey
       || e.shiftKey
       || e.altKey
-      || e.key.startsWith('F') && e.key.length === 2
-      // || (e.ctrlKey && e.key.toLowerCase() === 'r')
-      // || e.key === 'F12'
-      // || (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'i')
+      || e.key.startsWith('F') && e.key.length > 1
     ) {
       return;
     }

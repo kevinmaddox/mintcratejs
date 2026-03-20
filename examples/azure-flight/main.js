@@ -15,9 +15,9 @@ import { Title }  from "./rooms/title.js";
 import { Game }   from "./rooms/game.js";
 
 let roomList = [
-  Game,
   Splash,
   Title,
+  Game
 ];
 
 // MintCrate Initialization ----------------------------------------------------
