@@ -9,6 +9,7 @@ body {
   margin: 0;
   padding: 0;
   background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAIAAAAC64paAAAAB3RJTUUH6QISBhYWkY5QqgAAABd0RVh0U29mdHdhcmUAR0xEUE5HIHZlciAzLjRxhaThAAAACHRwTkdHTEQzAAAAAEqAKR8AAAAEZ0FNQQAAsY8L/GEFAAAABmJLR0QA/wD/AP+gvaeTAAAAHUlEQVR4nGN4+/btT3IBw6jmUc2jmkc1U0Uz2QAAhmqJ8RyeIMYAAAAASUVORK5CYII=);
+  padding-bottom: 0.75rem;
 }
 
 p {
@@ -137,4 +138,17 @@ td:first-child {
 .lighter {
   font-size: 0.75rem;
   color: #59636e;
+}
+
+/* Mobile ------------------------------------------------------------------- */
+
+@media only screen and (max-width: 640px) {
+  .wrapper {
+    width: 100%;
+    margin-top: 0;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+  }
 }

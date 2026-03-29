@@ -1830,7 +1830,6 @@ export class MintCrate {
     this.#mousePositions.localY = Math.floor(y / this.#screenScale);
     
     this.#touchState = (e.touches.length > 0);
-    console.log(e.touches.length, this.#touchState);
   }
   
   //----------------------------------------------------------------------------
