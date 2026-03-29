@@ -54,6 +54,9 @@ export class MintCrate {
   #mousePositions;
   #mouseButtons;
   
+  #touchState;
+  #touchInputs;
+  
   #camera;
   #cameraBounds;
   #cameraIsBound;
@@ -136,6 +139,7 @@ export class MintCrate {
     this.#frontCanvas = document.createElement('canvas');
     this.#frontCanvas.addEventListener('contextmenu',
       event => event.preventDefault());
+    this.#frontCanvas.style.touchAction = "none";
     
     this.#frontCanvas.width    = baseWidth * options.screenScale;
     this.#frontCanvas.height   = baseHeight * options.screenScale;
@@ -208,6 +212,16 @@ export class MintCrate {
     document.addEventListener('mousedown', (e) => this.#mouseButtonHandler(e), false);
     document.addEventListener('mouseup',   (e) => this.#mouseButtonHandler(e), false);
     document.addEventListener('mousemove', (e) => this.#mouseMoveHandler(e),   false);
+    
+    // Used for keeping track of touch input data
+    // Only one touch input supported, mapped to left click
+    this.#touchState = false;
+    this.#touchInputs = [
+      {pressed : false, held : false, released : false}
+    ];
+    
+    document.addEventListener('touchstart', (e) => this.#touchInputHandler(e), false);
+    document.addEventListener('touchend',   (e) => this.#touchInputHandler(e), false);
     
     // Camera
     this.#camera        = {x : 0, y : 0};
@@ -1759,15 +1773,33 @@ export class MintCrate {
   }
   
   mousePressed(mouseButton) {
-    return this.#mouseButtons[mouseButton].pressed;
+    let down = this.#mouseButtons[mouseButton].pressed;
+    
+    if (mouseButton === 0 && this.#touchInputs[0].pressed) {
+      down = true;
+    }
+    
+    return down;
   }
   
   mouseReleased(mouseButton) {
-    return this.#mouseButtons[mouseButton].released;
+    let down = this.#mouseButtons[mouseButton].released;
+    
+    if (mouseButton === 0 && this.#touchInputs[0].released) {
+      down = true;
+    }
+    
+    return down;
   }
   
   mouseHeld(mouseButton) {
-    return this.#mouseButtons[mouseButton].held;
+    let down = this.#mouseButtons[mouseButton].held;
+    
+    if (mouseButton === 0 && this.#touchInputs[0].held) {
+      down = true;
+    }
+    
+    return down;
   }
   
   #mouseButtonHandler(e) {
@@ -1781,6 +1813,24 @@ export class MintCrate {
     
     this.#mousePositions.localX = Math.floor(x / this.#screenScale);
     this.#mousePositions.localY = Math.floor(y / this.#screenScale);
+  }
+  
+  //----------------------------------------------------------------------------
+  // Touch input
+  //----------------------------------------------------------------------------
+  
+  #touchInputHandler(e) {
+    let touchData = e.changedTouches[0];
+    
+    let rect = this.#frontCanvas.getBoundingClientRect();
+    let x    = touchData.clientX - rect.left;
+    let y    = touchData.clientY - rect.top;
+    
+    this.#mousePositions.localX = Math.floor(x / this.#screenScale);
+    this.#mousePositions.localY = Math.floor(y / this.#screenScale);
+    
+    this.#touchState = (e.touches.length > 0);
+    console.log(e.touches.length, this.#touchState);
   }
   
   //----------------------------------------------------------------------------
@@ -2227,6 +2277,33 @@ export class MintCrate {
         }
         
         btn.held = false;
+      }
+    }
+    
+    // Update touch input state
+    for (const touchNumber in this.#touchInputs) {
+      let touch = this.#touchInputs[touchNumber];
+      
+      // Reset states
+      touch.pressed = false;
+      touch.released = false;
+      
+      // Get raw touch state
+      let down = this.#touchState;
+      
+      // Handle setting held/pressed/released states
+      if (down) {
+        if (!touch.held) {
+          touch.pressed = true;
+        }
+        
+        touch.held = true;
+      } else {
+        if (touch.held) {
+          touch.released = true;
+        }
+        
+        touch.held = false;
       }
     }
     
