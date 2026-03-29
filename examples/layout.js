@@ -1,7 +1,7 @@
 // Store MintCrate path variables to be imported later by example projects
 window.mintCratePaths = {
   local:  "../../mintcratejs/core.js",
-  remote: "https://cdn.jsdelivr.net/gh/kevinmaddox/mintcratejs@master/mintcratejs/core.js"
+  remote: "https://cdn.jsdelivr.net/gh/kevinmaddox/mintcratejs@latest/mintcratejs/core.js"
 };
 
 // Main content wrappers
