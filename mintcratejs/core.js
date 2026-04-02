@@ -133,7 +133,8 @@ export class MintCrate {
     
     // Default options
     options.screenScale = options.screenScale ?? 1;
-    options.devMode     = options.devMode ?? false;
+    options.smoothing   = options.smoothing   ?? false
+    options.devMode     = options.devMode     ?? false;
     
     // Initialize render canvases/contexts
     this.#frontCanvas = document.createElement('canvas');
@@ -146,7 +147,7 @@ export class MintCrate {
     this.#frontCanvas.tabIndex = 1;
     
     this.#frontContext = this.#frontCanvas.getContext('2d');
-    this.#frontContext.imageSmoothingEnabled = false;
+    this.#frontContext.imageSmoothingEnabled = options.smoothing;
     
     this.#backCanvas = new OffscreenCanvas(baseWidth, baseHeight);
     
